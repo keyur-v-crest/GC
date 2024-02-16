@@ -12,4 +12,4 @@ class Details(models.Model):
 
     def save(self, *args, **kwargs):
         self.updated_at = timezone.now() 
-        super().save(**args, **kwargs)
+        super().save(*args, **kwargs)
