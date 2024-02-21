@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import environ
 from pathlib import Path
 import os  
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,7 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.user', 
     'apps.category', 
-    'apps.news'
+    'apps.news', 
+    'apps.event'
 ]
 
 MIDDLEWARE = [
@@ -111,6 +113,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Update use authentication model 
 AUTH_USER_MODEL = 'user.Details'
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=120),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=120)
+}
 
 
 # Internationalization

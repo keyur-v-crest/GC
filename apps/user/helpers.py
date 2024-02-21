@@ -2,6 +2,7 @@ from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import PermissionDenied 
 import random 
 import string 
+import secrets
 
 class CheckUserAuthentication(BasePermission):
     def has_permission(self, request, view):
@@ -24,4 +25,9 @@ def HelperCreateFamilyId():
     # Concatenate the random characters and digits
     result = random_chars + random_digits 
 
-    return result
+    return result 
+
+def HelperGeneratePassword(): 
+    alphabet = string.ascii_letters + string.digits
+    random_string = ''.join(secrets.choice(alphabet) for i in range(10))
+    return random_string

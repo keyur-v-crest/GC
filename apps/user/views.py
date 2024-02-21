@@ -1,12 +1,14 @@
 from django.shortcuts import render
-from apps.user.serializer import SerializerCreateUserStep1 
+from apps.user.serializer import SerializerCreateUserStep1, SerializersCreateUserStep2, SerializersCreateUserStep3, SerializersCreateUserStep4, SerializerUserLogin
 from rest_framework.response import Response 
-from rest_framework.decorators import api_view 
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from apps.user.models import Details as User_details
 from django.contrib.auth.hashers import make_password, check_password 
 from rest_framework_simplejwt.tokens import RefreshToken
 import uuid
-from apps.user.helpers import HelperCreateFamilyId
+from apps.user.helpers import HelperCreateFamilyId, CheckUserAuthentication,  HelperGeneratePassword
+from rest_framework_simplejwt.authentication import JWTAuthentication 
+import re
 
 @api_view(["POST"])
 def RouteUserSignStep1(request): 
@@ -17,6 +19,39 @@ def RouteUserSignStep1(request):
             Email_check = User_details.objects.filter(email = request.data['email']).count() 
 
             if Email_check > 0: 
+                
+                User_object = User_details.objects.get(email = request.data['email'])  
+                
+                if not User_object.step2: 
+                    return Response({
+                        'status': False, 
+                        'message': "Step2 not complete"
+                    }, status = 400)
+
+                if not User_object.step3: 
+                    return Response({
+                        'status': False, 
+                        'message': "Step3 not complete"
+                    }, status=400)
+                
+                if not User_object.step4:
+                    return Response({
+                        'status': False, 
+                        'message': "Step4 not complete"
+                    }, status=400)
+                
+                if not User_object.email_verified: 
+                    return Response({
+                        'status': False, 
+                        'message': "Email not verified"
+                    }, status=400)
+                
+                if not User_object.mobile_verified: 
+                    return Response({
+                        'status': False, 
+                        'message': "Mobile number not verified"
+                    }, status=400)
+                
                 return Response({
                     'status': False, 
                     'message': "Already have account with this emailaddress"
@@ -34,7 +69,8 @@ def RouteUserSignStep1(request):
                     address = request.data['address'], 
                     profession = request.data['profession'], 
                     profession_description = request.data['description'], 
-                    family_id = HelperCreateFamilyId()
+                    family_id = HelperCreateFamilyId(), 
+                    step1 = True
                 )
                 Create_user.save()
 
@@ -53,6 +89,206 @@ def RouteUserSignStep1(request):
                 'message': "Failed to create user"
             }, status=400)
     except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def RouteUserSignupStep2(request): 
+    try:
+
+        if SerializersCreateUserStep2(data = request.data).is_valid(): 
+
+            User_details.objects.filter(id = request.user.id).update(gender = request.data['gender'], step2 = True)
+
+            return Response({
+                'status': True, 
+                'message': "Step2 complete"
+            }, status=200)
+        else:
+            return Response({
+                'status': False, 
+                'message': "Failed to complete step2"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500) 
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def RouteUserSignupStep3(request): 
+    try:
+
+        if SerializersCreateUserStep3(data = request.data).is_valid():
+
+            # Email check 
+            Email_check = User_details.objects.filter(email = request.data['email']).count() 
+
+            if Email_check > 0 : 
+                return Response({
+                    'status': False, 
+                    "message": "Already create account with this email address"
+                }, status=400)
+
+            else:
+
+                User_details.objects.filter(id = request.user.id).update(step3 = True) 
+
+                # New member 
+                New_member = User_details.objects.create(
+                    first_name = request.data['first_name'], 
+                    last_name = request.data['last_name'], 
+                    email = request.data['email'], 
+                    mobile = request.data['mobile_number'], 
+                    profession = request.data['profession'], 
+                    profession_description = request.data['description'], 
+                    address = request.data['address'], 
+                    relation = request.data['relation'], 
+                    username = str(uuid.uuid4()), 
+                    family_id = request.user.family_id, 
+                    sub_member = True, 
+                    password = make_password(HelperGeneratePassword())
+                )
+
+                New_member.save()
+
+                return Response({
+                    'status': True, 
+                    'messgae': "Family member add"
+                }, status=200) 
+        else: 
+            return Response({
+                'status': False, 
+                'message': "Failed to add family member"
+            }, status=400)
+        
+    except Exception as e:
+
+        return Response({
+            'status': False, 
+            "message": "Network request failed"
+        }, status=500)
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def RotueUserSignupStep4(request): 
+    try:
+
+        if SerializersCreateUserStep4(data = request.data).is_valid():
+
+            User_details.objects.filter(id = request.user.id).update(
+                profile_image = request.data['profile_image'], 
+                step4 = True    
+            )
+            
+            return Response({
+                'status': True, 
+                'message': "Step4 complete"
+            }, status=200)
+        
+        else:
+
+            return Response({
+                'status': False, 
+                'message': "Failed to update profile image"
+            }, status=400)
+        
+    except Exception as e:
+
+        return Response({
+            'status': False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["POST"])
+def RouteUserLogin(request):
+    try:
+
+        if SerializerUserLogin(data = request.data).is_valid():
+
+            pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$' 
+            mobile_number_pattern = r'^(\+\d{1,3}[- ]?)?\d{10}$'
+
+            try: 
+
+                User_object = None
+                if re.match(pattern, request.data['username']):
+                    User_object = User_details.objects.get(email = request.data['username']) 
+                elif re.match(mobile_number_pattern, request.data['username']): 
+                    User_object = User_details.objects.get(mobile = request.data['username']) 
+                else:
+                    User_object = User_details.objects.get(family_id = request.data['username'])
+
+                if not User_object.step2: 
+                    return Response({
+                        'status': False, 
+                        'message': "Your signup process in not complete. Complete first"
+                    }, status=400) 
+                
+                if not User_object.step3: 
+                    return Response({
+                        'status': False, 
+                        'message': "Your signup process in not complete. Complete first"
+                    }, status=400) 
+                
+                if not User_object.step4:
+                    return Response({
+                        'status': False, 
+                        'message': "Your signup process in not complete. Complete first"
+                    }, status=400) 
+                
+                if not User_object.mobile_verified: 
+                    return Response({
+                        'status': False, 
+                        'message': "Your mobile number verification is pending"
+                    }, status=400)
+
+                if not User_object.email_verified: 
+                    return Response({
+                        'status': False, 
+                        'message': "Your email verification is pending"
+                    }, status=400)
+                
+                # Check password 
+                
+                if check_password(request.data['password'], User_object.password): 
+
+                    Refersh_token = RefreshToken.for_user(User_object)
+
+                    return Response({
+                        'status': True,
+                        'message': "Login", 
+                        "data": {
+                            "access_token": str(Refersh_token.access_token)
+                        }
+                    }, status=200)
+                else:
+                    return Response({
+                        'status': False, 
+                        'message': "Invalid Password"
+                    }, status=400)
+        
+            except Exception as e:
+                return Response({
+                    'status': False, 
+                    'message': "User not found"
+                }, status=400)
+        else:
+            
+            return Response({
+                'status': False, 
+                'message': "Failed to login"
+            }, status=400)
+
+    except Exception as e:
+
         return Response({
             'status': False, 
             'message': "Network request failed"
