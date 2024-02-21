@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'apps.user', 
     'apps.category', 
     'apps.news', 
-    'apps.event'
+    'apps.event', 
+    'apps.admin'
 ]
 
 MIDDLEWARE = [
