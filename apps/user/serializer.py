@@ -1,4 +1,5 @@
 from rest_framework import serializers 
+from apps.user.models import Details
 
 class SerializerCreateUserStep1(serializers.Serializer):
     first_name = serializers.CharField(required = True)
@@ -32,3 +33,7 @@ class SerializerUserLogin(serializers.Serializer):
     username = serializers.CharField(required = True)
     password = serializers.CharField(required = True) 
     
+class SerializerFetchFamilyMemberInfo(serializers.ModelSerializer): 
+    class Meta:
+        model = Details
+        fields = ['id', 'email', 'first_name']

@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from apps.user.serializer import SerializerCreateUserStep1, SerializersCreateUserStep2, SerializersCreateUserStep3, SerializersCreateUserStep4, SerializerUserLogin
+from apps.user.serializer import SerializerCreateUserStep1, SerializersCreateUserStep2, SerializersCreateUserStep3, SerializersCreateUserStep4
+from apps.user import serializer
 from rest_framework.response import Response 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from apps.user.models import Details as User_details
@@ -289,6 +290,27 @@ def RouteUserLogin(request):
 
     except Exception as e:
 
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def RouteFetchFamilyMembers(request): 
+    try:
+
+        # Fetch all family member information based on family id 
+        Family_members = User_details.objects.filter(family_id = request.user.family_id)
+        Family_members = serializer.SerializerFetchFamilyMemberInfo(Family_members, many = True)
+
+        return Response({
+            'status': True, 
+            'message':  'Fetch', 
+            'data': Family_members.data
+        }, status=200)
+    except Exception as e: 
         return Response({
             'status': False, 
             'message': "Network request failed"
