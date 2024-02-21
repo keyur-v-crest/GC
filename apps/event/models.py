@@ -1,5 +1,6 @@
 from django.db import models
 from apps.category.models import Details as Category_details
+from apps.user.models import Details as User_details 
 
 class Details(models.Model): 
     id = models.AutoField(primary_key = True)
@@ -24,4 +25,6 @@ class Details(models.Model):
     organizer_contact_number = models.CharField(max_length = 100, default = None)
     organizer_description = models.CharField(max_length = 100, default = None)
     
-    event_delete = models.BooleanField(default = False)
+    event_delete = models.BooleanField(default = False) 
+    
+    event_create_by = models.ForeignKey(User_details, on_delete=models.CASCADE, null = True)

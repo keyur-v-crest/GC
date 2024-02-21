@@ -4,10 +4,12 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication 
-from rest_framework.permissions import IsAuthenticated 
 from apps.user.models import Details as User_details 
 from apps.user.helpers import CheckUserAuthentication
 import uuid
+from apps.event.models import Details as Event_details 
+from django.core.paginator import Paginator 
+from datetime import datetime
 
 @api_view(["POST"])
 def RouteCreateSuperUser(request): 
@@ -113,3 +115,172 @@ def RouteGetAllAdmin(request):
             'status': False, 
             "message": "Network request failed"
         }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def RouteCreateEvent(requets): 
+    try:
+
+        if serializer.SerializerCreateEvent(data = requets.data).is_valid():
+
+            # Create new event 
+            New_event = Event_details.objects.create(
+                event_name = requets.data['event_name'], 
+                event_description = requets.data['event_description'], 
+                category_id = requets.data['category'], 
+                price = requets.data['price'], 
+                event_date = requets.data['event_date'], 
+                publish_date = requets.data['publish_date'], 
+                event_start_time = requets.data['event_start_time'], 
+                event_end_time = requets.data['event_end_time'], 
+                event_address = requets.data['event_address'], 
+                event_address_latitude = requets.data['event_address_latitude'], 
+                event_address_longitude = requets.data['event_address_longitude'], 
+                event_image = requets.data['event_image'], 
+                number_of_people = requets.data['number_of_people'], 
+                organizer_name = requets.data['organizer_name'], 
+                organizer_contact_number = requets.data['organizer_contact_number'], 
+                organizer_description = requets.data['organizer_description'], 
+                event_create_by_id = requets.user.id
+            )
+            return Response({
+                'status': True, 
+                'message': 'Create'
+            }, status=200)
+        else: 
+            return Response({
+                'status': False, 
+                "message": "Failed to create event"
+            }, status=400)
+    except Exception as e: 
+
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=400)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def RouteGetEventDetails(request):
+    try:
+
+        if serializer.SerializerPaginator(data = request.data).is_valid():
+
+            # Event details 
+            All_event = Event_details.objects.all().order_by("-id") 
+            All_event_paginator = Paginator(All_event, request.data['page_size'])
+            All_event_paginator_page = All_event_paginator.get_page(request.data['page_number'])
+            All_event_paginator_page = serializer.SerializerFetchEventList(All_event_paginator_page, many = True)
+
+            return Response({
+                'status': True, 
+                "message": "Fetch", 
+                "data" : All_event_paginator_page.data
+            }, status=200)
+        else: 
+            return Response({
+                "status": False,
+                'message': "Failed"
+            }, status=400)
+    except Exception as e:
+
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=400) 
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def RouteGetParticularEventDetails(request): 
+    try:
+
+        if serializer.SerializersFetchParticularEventDetails(data = request.data).is_valid():
+            
+            Particular_event_details = Event_details.objects.filter(id = request.data['id'])
+            Particular_event_details = serializer.SerializerFetchEventList(Particular_event_details, many = True)
+
+            return Response({
+                'status': True, 
+                'message': "Fetch", 
+                "data": Particular_event_details.data
+            }, status=200)
+        
+        else:
+        
+            return Response({
+                "status": False,
+                'message': "Failed"
+            }, status=400)
+        
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=400)  
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def RouteUpdateEventDetails(request): 
+    try:
+
+        if serializer.SerializerUpdateEvent(data = request.data).is_valid():
+            
+            # Today date 
+            today_date = datetime.now()
+
+            # Particular event object 
+            Particular_event_object = Event_details.objects.get(id = request.data['id'])
+            if datetime.strptime(request.data['event_date'], '%Y-%m-%d') < today_date: 
+
+                return Response({
+                    'status': False, 
+                    "message": "Your event date is passed"
+                }, status=400)
+            
+            if datetime.strptime(request.data['publish_date'], '%Y-%m-%d') < today_date: 
+
+                return Response({
+                    'status': False, 
+                    "message": "Your event published date is passed"
+                }, status=400)
+            
+            Particular_event_object.event_name = request.data['event_name']
+            Particular_event_object.event_description = request.data['event_description']
+            Particular_event_object.price = request.data['price']
+            Particular_event_object.event_date = request.data['event_date']
+            Particular_event_object.publish_date = request.data['publish_date']
+            Particular_event_object.event_start_time = request.data['event_start_time']
+            Particular_event_object.event_end_time = request.data['event_end_time']
+            Particular_event_object.event_address = request.data['event_address']
+            Particular_event_object.event_address_latitude = request.data['event_address_latitude']
+            Particular_event_object.event_address_longitude = request.data['event_address_longitude'] 
+            Particular_event_object.event_image = request.data['event_image'] 
+            Particular_event_object.number_of_people   = request.data['number_of_people']
+            Particular_event_object.organizer_name = request.data['organizer_name']
+            Particular_event_object.organizer_contact_number = request.data['organizer_contact_number']
+            Particular_event_object.organizer_description = request.data['organizer_description']
+            Particular_event_object.save()
+
+            return Response({
+                'status': True,
+                'mesasge': 'Update'
+            }, status=200) 
+        else: 
+            return Response({
+                'status' : False, 
+                'message': "Failed"
+            }, status=400)
+    except Exception as e:
+        
+        print("Error message information ========>")
+        print(e)
+
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=400)  
+        
