@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-$clib+^kfmnt^)_n7)_k^0tlg+4n9a$11cu=+z&c&x6q*n$#ff
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["2f02-2405-201-2033-c073-14f8-5f61-3972-a541.ngrok-free.app", "127.0.0.1"]
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djstripe', 
     'apps.user', 
     'apps.category', 
     'apps.news', 
@@ -120,6 +121,13 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=120)
 }
 
+STRIPE_LIVE_SECRET_KEY = env("STRIPE_LIVE_SECRET_KEY")
+STRIPE_TEST_SECRET_KEY = env("STRIPE_TEST_SECRET_KEY")
+STRIPE_LIVE_MODE = False  # Change to True in production
+DJSTRIPE_WEBHOOK_SECRET = "whsec_bc91e8e2f66c5e0293d074660f449b4b9c54aea70e450803e58dae065bef8513"  # Get it from the section in the Stripe dashboard where you added the webhook endpoint
+DJSTRIPE_USE_NATIVE_JSONFIELD = True  # We recommend setting to True for new installations
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
+DJSTRIPE_SUBSCRIBER_MODEL = "user.Details"
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/

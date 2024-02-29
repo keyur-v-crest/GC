@@ -28,3 +28,9 @@ class Details(models.Model):
     event_delete = models.BooleanField(default = False) 
     
     event_create_by = models.ForeignKey(User_details, on_delete=models.CASCADE, null = True)
+
+
+class Booking(models.Model): 
+    id = models.AutoField(primary_key=True)
+    event = models.ForeignKey(Details, on_delete = models.CASCADE)
+    family_id = models.CharField(default = None, max_length = 500) 
