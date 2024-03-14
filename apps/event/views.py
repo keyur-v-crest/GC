@@ -39,9 +39,28 @@ def GetEventByIdRoute(request):
     try:
 
         if serializer.SerializerParticularEventDetails(data = request.query_params).is_valid():
+
+            # Fetch particular event details 
+            Particular_event_details = Event_details.objects.get(id = request.query_params.get("id"))
             return Response({
                 "status": True, 
-                "message": "Fetch"
+                "message": "Fetch", 
+                "data": {
+                    "event_image": Particular_event_details.event_image, 
+                    "event_name": Particular_event_details.event_name, 
+                    "event_address": Particular_event_details.event_address, 
+                    "event_address_latitude": Particular_event_details.event_address_latitude, 
+                    "event_address_longitude": Particular_event_details.event_address_longitude, 
+                    "event_date": Particular_event_details.event_date, 
+                    "event_start_time": Particular_event_details.event_start_time, 
+                    "event_end_time": Particular_event_details.event_end_time, 
+                    "organizer_image": Particular_event_details.organizer_image, 
+                    "organizer_name": Particular_event_details.organizer_name, 
+                    "organizer_contact": Particular_event_details.organizer_contact_number, 
+                    "organizer_description": Particular_event_details.organizer_description, 
+                    "event_description":  Particular_event_details.event_description, 
+                    "event_price": Particular_event_details.price 
+                }
             }, status=200)
         else:
             return Response({
