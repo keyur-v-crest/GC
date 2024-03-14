@@ -38,6 +38,7 @@ class SerializerCreateEvent(serializers.Serializer):
     organizer_contact_number = serializers.CharField(required = True)
     organizer_description = serializers.CharField(required = True)
     organizer_image = serializers.CharField(required = True, allow_blank = True, allow_null = True)
+    event_type = serializers.BooleanField(required = True)
 
 class SerializerUpdateEvent(serializers.Serializer): 
     id = serializers.IntegerField(required = True)
@@ -59,6 +60,7 @@ class SerializerUpdateEvent(serializers.Serializer):
     organizer_contact_number = serializers.CharField(required = True)
     organizer_description = serializers.CharField(required = True) 
     organizer_image = serializers.CharField(required = True, allow_null = True, allow_blank = True)
+    event_type = serializers.BooleanField(required = True)
 
 class SerializerPaginator(serializers.Serializer):
     page_number = serializers.IntegerField(required = True)
