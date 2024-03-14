@@ -300,9 +300,8 @@ def RouteUserLogin(request):
 @permission_classes([CheckUserAuthentication])
 def RouteFetchFamilyMembers(request): 
     try:
-
         # Fetch all family member information based on family id 
-        Family_members = User_details.objects.filter(family_id = request.user.family_id)
+        Family_members = User_details.objects.filter(family_id = request.user.family_id).exclude(id = request.user.id)
         Family_members = serializer.SerializerFetchFamilyMemberInfo(Family_members, many = True)
 
         return Response({
