@@ -68,15 +68,10 @@ class SerializersFetchParticularEventDetails(serializers.Serializer):
 class SerializerFetchEventList(serializers.ModelSerializer):
 
     category_name = serializers.SerializerMethodField()
-    created_by = serializers.SerializerMethodField()
 
     class Meta: 
         model = Event_details 
-        fields = '__all__'
+        fields = ['id', "category_name", "event_image", "event_date", "event_start_time", "event_name", "event_description", "event_address", "event_address_latitude", "event_address_longitude"]
 
     def get_category_name(self, obj):
         return obj.category.category_name
-
-    def get_created_by(self, obj):
-        # Add your logic here to calculate the value for extra_column_2
-        return obj.event_create_by.email

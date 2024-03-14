@@ -203,7 +203,6 @@ def RouteGetEventDetails(request):
                 'message': "Failed"
             }, status=400)
     except Exception as e:
-
         return Response({
             'status': False, 
             'message': "Network request failed"

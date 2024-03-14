@@ -5,6 +5,8 @@ urlpatterns = [
     path("create", views.RouteCreateSuperUser, name="create-super-admin"), 
     path("login", views.RouteAdminLogin, name="super-admin-login"), 
     path("get", views.RouteGetAllAdmin, name="super-admin-fetch"), 
+
+    # Event related route
     path("event/create", views.RouteCreateEvent, name="create-event"), 
     path("event/get", views.RouteGetEventDetails, name="event-list"), 
     path("event/id", views.RouteGetParticularEventDetails, name="particular-event-details"), 
