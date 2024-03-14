@@ -144,7 +144,8 @@ def RouteCreateEvent(requets):
                 organizer_name = requets.data['organizer_name'], 
                 organizer_contact_number = requets.data['organizer_contact_number'], 
                 organizer_description = requets.data['organizer_description'], 
-                event_create_by_id = requets.user.id
+                event_create_by_id = requets.user.id, 
+                organizer_image = requets.data['organizer_image']
             )
 
             # Store event gallery information 
@@ -280,6 +281,7 @@ def RouteUpdateEventDetails(request):
             Particular_event_object.organizer_contact_number = request.data['organizer_contact_number']
             Particular_event_object.organizer_description = request.data['organizer_description']
             Particular_event_object.number_of_seat = request.data['number_of_seat']
+            Particular_event_object.organizer_image = request.data['organizer_image']
             Particular_event_object.save()
 
             return Response({

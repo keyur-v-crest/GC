@@ -9,3 +9,6 @@ class SerializerEventDetails(serializers.ModelSerializer):
 
     def get_category_info(self, object): 
         return object.category.category_image
+    
+class SerializerParticularEventDetails(serializers.Serializer): 
+    id = serializers.IntegerField(required = True)

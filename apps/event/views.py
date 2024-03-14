@@ -8,7 +8,7 @@ from apps.event import serializer
 from django.conf import settings
 import stripe
 
-@api_view(["POST"])
+@api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
 def RouteFetchEvent(request): 
@@ -31,7 +31,29 @@ def RouteFetchEvent(request):
             'status': False, 
             'message': "Network request failed"
         }, status=500)
-    
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def GetEventByIdRoute(request): 
+    try:
+
+        if serializer.SerializerParticularEventDetails(data = request.query_params).is_valid():
+            return Response({
+                "status": True, 
+                "message": "Fetch"
+            }, status=200)
+        else:
+            return Response({
+                'status': False, 
+                'message': "Failed to fetch event details"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)    
+
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
