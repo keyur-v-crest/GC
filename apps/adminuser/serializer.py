@@ -53,9 +53,10 @@ class SerializerUpdateEvent(serializers.Serializer):
     event_address_longitude = serializers.CharField(required = True)
     event_image = serializers.CharField(required = True)
     number_of_people = serializers.IntegerField(required = True)
+    number_of_seat = serializers.IntegerField(required = True)
     organizer_name = serializers.CharField(required = True)
     organizer_contact_number = serializers.CharField(required = True)
-    organizer_description = serializers.CharField(required = True)
+    organizer_description = serializers.CharField(required = True) 
     
 
 class SerializerPaginator(serializers.Serializer):

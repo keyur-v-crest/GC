@@ -216,13 +216,28 @@ def RouteGetParticularEventDetails(request):
 
         if serializer.SerializersFetchParticularEventDetails(data = request.data).is_valid():
             
-            Particular_event_details = Event_details.objects.filter(id = request.data['id'])
-            Particular_event_details = serializer.SerializerFetchEventList(Particular_event_details, many = True)
-
+            Particular_event_details = Event_details.objects.get(id = request.data['id'])
             return Response({
                 'status': True, 
                 'message': "Fetch", 
-                "data": Particular_event_details.data
+                "data": {
+                    "id": Particular_event_details.id, 
+                    "event_name": Particular_event_details.event_name, 
+                    "event_description": Particular_event_details.event_description, 
+                    "category": Particular_event_details.category_id, 
+                    "event_date": Particular_event_details.event_date, 
+                    "event_start_time": Particular_event_details.event_start_time, 
+                    "event_end_time": Particular_event_details.event_end_time, 
+                    "event_address": Particular_event_details.event_address, 
+                    "event_address_latitude": Particular_event_details.event_address_latitude, 
+                    "event_address_longitude": Particular_event_details.event_address_longitude, 
+                    "number_of_people": Particular_event_details.number_of_people, 
+                    "number_of_seat": Particular_event_details.number_of_seat, 
+                    "organizer_name": Particular_event_details.organizer_name, 
+                    "organizer_contact_number": Particular_event_details.organizer_contact_number, 
+                    "organizer_description": Particular_event_details.organizer_description, 
+                    "price": Particular_event_details.price
+                }
             }, status=200)
         
         else:
@@ -233,6 +248,7 @@ def RouteGetParticularEventDetails(request):
             }, status=400)
         
     except Exception as e:
+        print(e)
         return Response({
             'status': False, 
             'message': "Network request failed"
@@ -245,26 +261,9 @@ def RouteUpdateEventDetails(request):
     try:
 
         if serializer.SerializerUpdateEvent(data = request.data).is_valid():
-            
-            # Today date 
-            today_date = datetime.now()
 
             # Particular event object 
             Particular_event_object = Event_details.objects.get(id = request.data['id'])
-            if datetime.strptime(request.data['event_date'], '%Y-%m-%d') < today_date: 
-
-                return Response({
-                    'status': False, 
-                    "message": "Your event date is passed"
-                }, status=400)
-            
-            if datetime.strptime(request.data['publish_date'], '%Y-%m-%d') < today_date: 
-
-                return Response({
-                    'status': False, 
-                    "message": "Your event published date is passed"
-                }, status=400)
-            
             Particular_event_object.event_name = request.data['event_name']
             Particular_event_object.event_description = request.data['event_description']
             Particular_event_object.price = request.data['price']
@@ -280,6 +279,7 @@ def RouteUpdateEventDetails(request):
             Particular_event_object.organizer_name = request.data['organizer_name']
             Particular_event_object.organizer_contact_number = request.data['organizer_contact_number']
             Particular_event_object.organizer_description = request.data['organizer_description']
+            Particular_event_object.number_of_seat = request.data['number_of_seat']
             Particular_event_object.save()
 
             return Response({
@@ -292,9 +292,6 @@ def RouteUpdateEventDetails(request):
                 'message': "Failed"
             }, status=400)
     except Exception as e:
-        
-        print("Error message information ========>")
-        print(e)
 
         return Response({
             'status': False, 
