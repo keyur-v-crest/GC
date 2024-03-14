@@ -30,3 +30,9 @@ class Details(AbstractUser, PermissionsMixin):
     def save(self, *args, **kwargs): 
         self.updated_at = timezone.now() 
         super().save(*args, **kwargs)
+
+class Event(models.Model): 
+    id = models.AutoField(primary_key = True)
+    user = models.ForeignKey("user.Details", on_delete = models.CASCADE)
+    event = models.ForeignKey("event.Details", on_delete = models.CASCADE) 
+    family_id = models.CharField(max_length = 100, default = None, null = True)

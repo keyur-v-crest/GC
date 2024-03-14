@@ -44,7 +44,8 @@ def RouteEventPayment(request):
 
         # Metadata information 
         metadata = {
-            "order_id": "Order id information"
+            "order_id": "Order id information", 
+            "client_reference_id": 1
         }
 
         session = stripe.checkout.Session.create(

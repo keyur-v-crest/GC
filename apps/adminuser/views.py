@@ -8,6 +8,7 @@ from apps.user.models import Details as User_details
 from apps.user.helpers import CheckUserAuthentication
 import uuid
 from apps.event.models import Details as Event_details 
+from apps.event.models import Gallery as Event_gallery
 from django.core.paginator import Paginator 
 from datetime import datetime
 
@@ -139,11 +140,28 @@ def RouteCreateEvent(requets):
                 event_address_longitude = requets.data['event_address_longitude'], 
                 event_image = requets.data['event_image'], 
                 number_of_people = requets.data['number_of_people'], 
+                number_of_seat = requets.data['number_of_seat'], 
                 organizer_name = requets.data['organizer_name'], 
                 organizer_contact_number = requets.data['organizer_contact_number'], 
                 organizer_description = requets.data['organizer_description'], 
                 event_create_by_id = requets.user.id
             )
+
+            # Store event gallery information 
+            event_gallery_bulk_insert = []
+
+            for item in requets.data['event_gallery']:
+                event_type = item['type']
+                event_image = item['value']
+                event_gallery_bulk_insert.append(
+                    Event_gallery(
+                        event_id = New_event.id, 
+                        type = event_type, 
+                        link = event_image
+                    )
+                )
+            Event_gallery.objects.bulk_create(event_gallery_bulk_insert)
+
             return Response({
                 'status': True, 
                 'message': 'Create'

@@ -20,17 +20,21 @@ class Details(models.Model):
     
     event_image = models.CharField(max_length = 100, default = None, null = True)
     number_of_people = models.IntegerField() 
+    number_of_seat = models.IntegerField(default = 0)
     
     organizer_name = models.CharField(max_length = 500, default = None)
     organizer_contact_number = models.CharField(max_length = 100, default = None)
     organizer_description = models.CharField(max_length = 100, default = None)
     
     event_delete = models.BooleanField(default = False) 
-    
     event_create_by = models.ForeignKey(User_details, on_delete=models.CASCADE, null = True)
-
-
 class Booking(models.Model): 
     id = models.AutoField(primary_key=True)
     event = models.ForeignKey(Details, on_delete = models.CASCADE)
     family_id = models.CharField(default = None, max_length = 500) 
+
+class Gallery(models.Model): 
+    id = models.AutoField(primary_key = True)
+    event = models.ForeignKey(Details, on_delete = models.CASCADE, null = True, related_name = "event_images")
+    type = models.CharField(max_length = 100, default = None)
+    link = models.CharField(max_length = 1000, default = None)
