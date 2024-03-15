@@ -38,3 +38,10 @@ class Event(models.Model):
     family_id = models.CharField(max_length = 100, default = None, null = True)
     event_type = models.BooleanField(default = False)
     book_by = models.ForeignKey(Details, on_delete=models.CASCADE, related_name = "book_user_id", null = True)
+
+    created_at = models.DateTimeField(auto_now_add = True, null = True)
+    updated_at = models.DateTimeField(auto_now = True, null = True)
+
+    def save(self, *args, **kwargs): 
+        self.updated_at = timezone.now() 
+        super().save(*args, **kwargs) 

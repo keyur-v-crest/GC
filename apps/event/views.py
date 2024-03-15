@@ -13,7 +13,7 @@ import stripe
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def RouteFetchEvent(request): 
+def event_list_view(request): 
     try:
 
         # Curernt date 
@@ -37,13 +37,14 @@ def RouteFetchEvent(request):
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def GetEventByIdRoute(request): 
+def event_details_view(request): 
     try:
 
         if serializer.SerializerParticularEventDetails(data = request.query_params).is_valid():
 
             # Fetch particular event details 
             Particular_event_details = Event_details.objects.get(id = request.query_params.get("id"))
+            event_helpers.helper_get_event_joined_members(request.query_params.get("id"))
             return Response({
                 "status": True, 
                 "message": "Fetch", 
@@ -79,7 +80,7 @@ def GetEventByIdRoute(request):
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def RouteEventPayment(request):
+def event_payment_view(request):
     try:
 
         if serializer.SerializerEventPayment(data = request.data).is_valid():
@@ -132,12 +133,11 @@ def RouteEventPayment(request):
                 )
 
                 # Create enrty in user event table 
-                User_event_check = User_event_model.objects.filter(event_id = request.data['event_id'], user_id = request.user.id).count()
-                if User_event_check == 0:
-                    User_event_model.objects.create(
+                for item in user_list:
+                    User_event_object = User_event_model.objects.get_or_create(
                         family_id = request.user.family_id, 
                         event_id = request.data['event_id'], 
-                        user_id = request.user.id, 
+                        user_id = item, 
                         book_by_id = request.user.id, 
                         event_type = request.data['event_type']
                     )

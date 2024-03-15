@@ -31,3 +31,21 @@ def helper_user_event_status_check(event_id , user_id):
 
     except Exception as e: 
         return True
+    
+def helper_get_event_joined_members(event_id):
+    """
+    Helper:
+        Get particular event joined member information 
+    """
+    try:
+        django_session_filter = Session.objects.filter(metadata__contains={"event_id": str(event_id)}, payment_status = "paid").values_list("client_reference_id", flat=True)
+        django_session_filter = list(django_session_filter)
+        
+        # Memeber count information 
+        memeber_count = User_event.objects.filter(book_by_id__in = django_session_filter, event_id = event_id).count()
+        
+        # Member information 
+        
+        return True, memeber_count 
+    except Exception as e:
+        return False, 0

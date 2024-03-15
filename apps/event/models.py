@@ -1,6 +1,7 @@
 from django.db import models
 from apps.category.models import Details as Category_details
 from apps.user.models import Details as User_details 
+from django.utils import timezone
 
 class Details(models.Model): 
     id = models.AutoField(primary_key = True)
@@ -31,6 +32,13 @@ class Details(models.Model):
     event_create_by = models.ForeignKey(User_details, on_delete=models.CASCADE, null = True)
     event_type = models.BooleanField(default = False)
 
+    created_at = models.DateTimeField(auto_now_add = True, null = True)
+    updated_at = models.DateTimeField(auto_now = True, null = True)
+
+    def save(self, *args, **kwargs): 
+        self.updated_at = timezone.now() 
+        super().save(*args, **kwargs) 
+
 class Booking(models.Model): 
     id = models.AutoField(primary_key=True)
     event = models.ForeignKey(Details, on_delete = models.CASCADE)
@@ -41,3 +49,9 @@ class Gallery(models.Model):
     event = models.ForeignKey(Details, on_delete = models.CASCADE, null = True, related_name = "event_images")
     type = models.CharField(max_length = 100, default = None)
     link = models.CharField(max_length = 1000, default = None)
+    created_at = models.DateTimeField(auto_now_add = True, null = True)
+    updated_at = models.DateTimeField(auto_now = True, null = True)
+
+    def save(self, *args, **kwargs): 
+        self.updated_at = timezone.now() 
+        super().save(*args, **kwargs) 
