@@ -4,8 +4,10 @@ from apps.user.helpers import CheckUserAuthentication
 from rest_framework.response import Response
 from datetime import datetime
 from apps.event.models import Details as Event_details 
+from apps.user.models import Event as User_event_model
 from apps.event import serializer
 from django.conf import settings
+from apps.event import helpers as event_helpers
 import stripe
 
 @api_view(["GET"])
@@ -59,7 +61,8 @@ def GetEventByIdRoute(request):
                     "organizer_contact": Particular_event_details.organizer_contact_number, 
                     "organizer_description": Particular_event_details.organizer_description, 
                     "event_description":  Particular_event_details.event_description, 
-                    "event_price": Particular_event_details.price 
+                    "event_price": Particular_event_details.price , 
+                    "event_type": Particular_event_details.event_type
                 }
             }, status=200)
         else:
@@ -79,47 +82,82 @@ def GetEventByIdRoute(request):
 def RouteEventPayment(request):
     try:
 
-        # Confiure stripe api key 
-        stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
-        print(settings.STRIPE_TEST_SECRET_KEY)
+        if serializer.SerializerEventPayment(data = request.data).is_valid():
 
-        # Metadata information 
-        metadata = {
-            "order_id": "Order id information", 
-            "client_reference_id": 1
-        }
+            # Check numberOf exists or not 
+            booking_status = event_helpers.helper_check_number_of_seat(request.data['event_id'], request.data['booking_count'])
 
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[
-                {
-                    'price_data': {
-                        'currency': 'usd',
-                        'product_data': {
-                            'name': 'T-shirt',
+            if booking_status:
+                
+                user_list = request.data['family_member']
+                user_list.insert(0, request.user.id) 
+
+                for item in user_list:
+                    status = event_helpers.helper_user_event_status_check(request.data['event_id'], item)
+                    if not status: 
+                        return Response({
+                            'status': False, 
+                            "message": "One member already booked for this event. Please check that"
+                        }, status=400)
+                    
+
+                # Confiure stripe api key 
+                stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+
+                # Metadata information 
+                metadata = {
+                    "event_id": request.data['event_id'], 
+                    "event_type": request.data['event_type']
+                }
+
+                session = stripe.checkout.Session.create(
+                    payment_method_types=['card'],
+                    line_items=[
+                        {
+                            'price_data': {
+                                'currency': 'usd',
+                                'product_data': {
+                                    'name': request.data['event_name'],
+                                },
+                                'unit_amount':int(request.data['event_price'])*100,
+                            },
+                            'quantity': 1,
                         },
-                        'unit_amount': 2000,
-                    },
-                    'quantity': 1,
-                },
-            ],
-            metadata=metadata,
-            mode='payment',
-            success_url='http://localhost:8000/success/',
-            cancel_url='http://localhost:8000/cancel/',
-        )
+                    ],
+                    metadata=metadata,
+                    mode='payment',
+                    success_url='http://localhost:8000/success/',
+                    cancel_url='http://localhost:8000/cancel/',
+                    client_reference_id = request.user.id
+                )
 
-        print(session.url)
+                # Create enrty in user event table 
+                User_event_check = User_event_model.objects.filter(event_id = request.data['event_id'], user_id = request.user.id).count()
+                if User_event_check == 0:
+                    User_event_model.objects.create(
+                        family_id = request.user.family_id, 
+                        event_id = request.data['event_id'], 
+                        user_id = request.user.id, 
+                        book_by_id = request.user.id, 
+                        event_type = request.data['event_type']
+                    )
 
-        return Response({
-            'status': True, 
-            'message': "Create"
-        }, status=200)
+                return Response({
+                    'status': True, 
+                    'message': "Create", 
+                    "data": session.url
+                }, status=200)  
+            else:
+                return Response({
+                    "status" : False, 
+                    "messgae": "All seat already booked for this event"
+                }, status=400)
+        else:
+            return Response({
+                'status': False, 
+                'message': "Failed to created payment session"
+            }, status=400)
     except Exception as e:
-
-        print("Error message information ==========>")
-        print(e)
-
         return Response({
             'status': False, 
             'message': "Network request failed"

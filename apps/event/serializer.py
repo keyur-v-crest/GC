@@ -12,3 +12,11 @@ class SerializerEventDetails(serializers.ModelSerializer):
     
 class SerializerParticularEventDetails(serializers.Serializer): 
     id = serializers.IntegerField(required = True)
+
+class SerializerEventPayment(serializers.Serializer): 
+    family_member = serializers.ListField(required = True)
+    event_id = serializers.IntegerField(required = True)
+    event_type = serializers.BooleanField(required = True)
+    event_name = serializers.CharField(required = True)
+    event_price = serializers.IntegerField(required = True)
+    booking_count = serializers.IntegerField(required = True)
