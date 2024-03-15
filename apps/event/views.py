@@ -8,7 +8,9 @@ from apps.user.models import Event as User_event_model
 from apps.event import serializer
 from django.conf import settings
 from apps.event import helpers as event_helpers
+from djstripe.models import Session
 import stripe
+from django.core.paginator import Paginator
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
@@ -44,7 +46,7 @@ def event_details_view(request):
 
             # Fetch particular event details 
             Particular_event_details = Event_details.objects.get(id = request.query_params.get("id"))
-            event_helpers.helper_get_event_joined_members(request.query_params.get("id"))
+            status, member_count, member_information = event_helpers.helper_get_event_joined_members(request.query_params.get("id"))
             return Response({
                 "status": True, 
                 "message": "Fetch", 
@@ -63,7 +65,9 @@ def event_details_view(request):
                     "organizer_description": Particular_event_details.organizer_description, 
                     "event_description":  Particular_event_details.event_description, 
                     "event_price": Particular_event_details.price , 
-                    "event_type": Particular_event_details.event_type
+                    "event_type": Particular_event_details.event_type,
+                    "member_count": member_count, 
+                    "member_information": member_information
                 }
             }, status=200)
         else:
@@ -81,6 +85,7 @@ def event_details_view(request):
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
 def event_payment_view(request):
+
     try:
 
         if serializer.SerializerEventPayment(data = request.data).is_valid():
@@ -131,16 +136,19 @@ def event_payment_view(request):
                     cancel_url='http://localhost:8000/cancel/',
                     client_reference_id = request.user.id
                 )
+                print(session)
 
                 # Create enrty in user event table 
                 for item in user_list:
-                    User_event_object = User_event_model.objects.get_or_create(
-                        family_id = request.user.family_id, 
-                        event_id = request.data['event_id'], 
-                        user_id = item, 
-                        book_by_id = request.user.id, 
-                        event_type = request.data['event_type']
+                    User_event_object, created = User_event_model.objects.get_or_create(
+                        family_id=request.user.family_id,
+                        event_id=request.data['event_id'],
+                        user_id=item,
+                        book_by_id=request.user.id,
+                        event_type=request.data['event_type'],
+                        defaults={'ticket_number': event_helpers.helper_get_ticket_number()}
                     )
+
 
                 return Response({
                     'status': True, 
@@ -158,7 +166,66 @@ def event_payment_view(request):
                 'message': "Failed to created payment session"
             }, status=400)
     except Exception as e:
+        print(e)
         return Response({
             'status': False, 
             'message': "Network request failed"
         }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_history_view(request):
+    try:
+
+        if serializer.event_history_serializer(data = request.query_params).is_valid():
+
+            response = []
+           
+            if request.query_params.get("status") == "all": 
+                user_event_ids = User_event_model.objects.filter(user_id=request.user.id).select_related("event")
+                user_event_id_paginator = Paginator(user_event_ids, int(request.query_params.get("page_size")))
+                user_event_paginator_page = user_event_id_paginator.get_page(int(request.query_params.get("page_number")))
+
+            elif request.query_params.get("status") == "Upcoming": 
+                user_event_ids = User_event_model.objects.filter(user_id=request.user.id, status = "Upcoming").select_related("event")
+                user_event_id_paginator = Paginator(user_event_ids, int(request.query_params.get("page_size")))
+                user_event_paginator_page = user_event_id_paginator.get_page(int(request.query_params.get("page_number")))
+            
+            else:
+                user_event_ids = User_event_model.objects.filter(user_id=request.user.id, status = "Completed").select_related("event")
+                user_event_id_paginator = Paginator(user_event_ids, int(request.query_params.get("page_size")))
+                user_event_paginator_page = user_event_id_paginator.get_page(int(request.query_params.get("page_number")))
+            
+            for event_object in user_event_paginator_page:
+                if request.query_params.get("status") != "all": 
+                    event_payment = Session.objects.filter(metadata__contains={"event_id": str(event_object.event_id)}, client_reference_id = event_object.book_by_id, payment_status="paid")
+                else:
+                    event_payment = Session.objects.filter(metadata__contains={"event_id": str(event_object.event_id)}, client_reference_id = event_object.book_by_id)
+                for payment_data in event_payment:
+                    temp = {}
+                    temp["event_image"] = event_object.event.event_image
+                    temp['event_name'] = event_object.event.event_name 
+                    temp['event_date'] = event_object.event.event_date
+                    temp['ticket_number'] = event_object.ticket_number
+                    temp['event_description'] = event_object.event.event_description
+                    temp['event_status'] = event_object.status
+                    temp['payment_status'] = payment_data.payment_status
+                    temp['event_id'] = event_object.event.id
+                    response.append(temp)
+            return Response({
+                'status': True, 
+                "message": "Fetch", 
+                "data": response
+            }, status=200)
+        else:
+            return Response({
+                'status': False, 
+                "mesasge": "Failed to fetch event history"
+            }, status=400) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+    

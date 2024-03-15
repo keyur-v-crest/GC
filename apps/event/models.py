@@ -34,6 +34,7 @@ class Details(models.Model):
 
     created_at = models.DateTimeField(auto_now_add = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, null = True)
+    
 
     def save(self, *args, **kwargs): 
         self.updated_at = timezone.now() 

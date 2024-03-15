@@ -1,6 +1,7 @@
 from apps.event.models import Details as Event_details 
 from apps.user.models import Event as User_event 
 from djstripe.models import Session
+import random
 
 def helper_check_number_of_seat(event_id, required_booking): 
     Allowed_booking_count = Event_details.objects.filter(id = event_id).values("number_of_seat").first()
@@ -45,7 +46,11 @@ def helper_get_event_joined_members(event_id):
         memeber_count = User_event.objects.filter(book_by_id__in = django_session_filter, event_id = event_id).count()
         
         # Member information 
-        
-        return True, memeber_count 
+        member_information = User_event.objects.filter(book_by_id__in = django_session_filter, event_id = event_id).values("user__profile_image")
+        return True, memeber_count, member_information 
     except Exception as e:
-        return False, 0
+        return False, 0, []
+    
+def helper_get_ticket_number():
+    random_number = random.randint(100000, 999999)
+    return random_number

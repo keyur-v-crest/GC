@@ -20,3 +20,8 @@ class SerializerEventPayment(serializers.Serializer):
     event_name = serializers.CharField(required = True)
     event_price = serializers.IntegerField(required = True)
     booking_count = serializers.IntegerField(required = True)
+
+class event_history_serializer(serializers.Serializer):
+    status = serializers.CharField(required = True)
+    page_number = serializers.IntegerField(required = True)
+    page_size = serializers.IntegerField(required = True)
