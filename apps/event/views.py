@@ -239,3 +239,24 @@ def event_date_view(request):
             'status': False, 
             'message': "Network request failed"
         }, status=500)
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_particulardate_view(request):
+    try:
+
+        date = request.data['date']
+
+        User_particular_date_event = User_event_model.objects.filter(user_id = request.user.id, event__event_date = date, status = "Upcoming")
+        User_particular_date_event = serializer.EventDateWiseData(User_particular_date_event, many = True)
+        return Response({
+            'status': True, 
+            "message": "Fetch", 
+            "data": User_particular_date_event.data
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)

@@ -36,7 +36,7 @@ class PaymentDetails(serializers.ModelSerializer):
 class EventDetails(serializers.ModelSerializer):
     class Meta:
         model = Details
-        fields = ["id", "event_image", "event_name", "event_description"]
+        fields = ["id", "event_image", "event_name", "event_description", "organizer_name", "price"]
 
 class UserEventListFechSerializer(serializers.ModelSerializer):
     event = EventDetails(read_only = True)
@@ -47,3 +47,9 @@ class UserEventListFechSerializer(serializers.ModelSerializer):
 class EventDateWiseSerializer(serializers.Serializer): 
     year = serializers.IntegerField(required = True)
     month = serializers.IntegerField(required = True)
+
+class EventDateWiseData(serializers.ModelSerializer):
+    event = EventDetails(read_only = True)
+    class Meta:
+        model = User_event
+        fields = ['id', "event"] 
