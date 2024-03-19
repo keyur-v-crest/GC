@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, PermissionsMixin 
 from django.utils import timezone
+from djstripe.models import WebhookEventTrigger
 
 class Details(AbstractUser, PermissionsMixin): 
     created_at = models.DateTimeField(auto_now_add = True )
@@ -34,16 +35,18 @@ class Details(AbstractUser, PermissionsMixin):
 class Event(models.Model): 
     id = models.AutoField(primary_key = True)
     user = models.ForeignKey("user.Details", on_delete = models.CASCADE)
-    event = models.ForeignKey("event.Details", on_delete = models.CASCADE) 
-    family_id = models.CharField(max_length = 100, default = None, null = True)
+    event = models.ForeignKey("event.Details", on_delete = models.CASCADE) # event id information  
+    family_id = models.CharField(max_length = 100, default = None, null = True) # family id 
     event_type = models.BooleanField(default = False)
     book_by = models.ForeignKey(Details, on_delete=models.CASCADE, related_name = "book_user_id", null = True)
     status = models.CharField(max_length = 100, default = "Upcoming", null = True)
-    ticket_number = models.CharField(max_length = 100, default = None, null = True)
-
+    ticket_number = models.CharField(max_length = 100, default = None, null = True) #ticket id 6digit random number 
+    transaction_status = models.CharField(max_length = 100, null = True)
+    payment = models.ForeignKey(WebhookEventTrigger, on_delete = models.CASCADE, null = True, related_name = "user_event_payment") # payment id reference information 
     created_at = models.DateTimeField(auto_now_add = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, null = True)
 
     def save(self, *args, **kwargs): 
         self.updated_at = timezone.now() 
         super().save(*args, **kwargs) 
+

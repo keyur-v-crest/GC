@@ -11,6 +11,7 @@ from apps.event import helpers as event_helpers
 from djstripe.models import Session
 import stripe
 from django.core.paginator import Paginator
+import json
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
@@ -94,10 +95,8 @@ def event_payment_view(request):
             booking_status = event_helpers.helper_check_number_of_seat(request.data['event_id'], request.data['booking_count'])
 
             if booking_status:
-                
                 user_list = request.data['family_member']
                 user_list.insert(0, request.user.id) 
-
                 for item in user_list:
                     status = event_helpers.helper_user_event_status_check(request.data['event_id'], item)
                     if not status: 
@@ -113,7 +112,8 @@ def event_payment_view(request):
                 # Metadata information 
                 metadata = {
                     "event_id": request.data['event_id'], 
-                    "event_type": request.data['event_type']
+                    "event_type": request.data['event_type'], 
+                    "event_user": json.dumps(user_list)
                 }
 
                 session = stripe.checkout.Session.create(
@@ -136,8 +136,6 @@ def event_payment_view(request):
                     cancel_url='http://localhost:8000/cancel/',
                     client_reference_id = request.user.id
                 )
-                print(session)
-
                 # Create enrty in user event table 
                 for item in user_list:
                     User_event_object, created = User_event_model.objects.get_or_create(
@@ -166,6 +164,7 @@ def event_payment_view(request):
                 'message': "Failed to created payment session"
             }, status=400)
     except Exception as e:
+        print("Error -------- ")
         print(e)
         return Response({
             'status': False, 

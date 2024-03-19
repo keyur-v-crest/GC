@@ -20,12 +20,8 @@ def helper_user_event_status_check(event_id , user_id):
     """
 
     try:
-        user_event_check = User_event.objects.get(event_id = event_id, user_id = user_id)
-        user_event_book_id = user_event_check.book_by_id
-        
-        event_payment_status_check = Session.objects.filter(metadata__contains={"event_id": str(event_id)}, payment_status = "paid", client_reference_id = user_event_book_id).count()
-    
-        if event_payment_status_check > 0 :
+        user_event_check = User_event.objects.filter(event_id  = event_id, user_id = user_id, transaction_status = "Complete").count()
+        if user_event_check > 0 :
             return False
         else:
             return True
