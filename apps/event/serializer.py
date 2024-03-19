@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from apps.event.models import Details 
+from apps.user.models import Event as User_event
+from djstripe.models import WebhookEventTrigger
 
 class SerializerEventDetails(serializers.ModelSerializer):
     category_info = serializers.SerializerMethodField()
@@ -25,3 +27,23 @@ class event_history_serializer(serializers.Serializer):
     status = serializers.CharField(required = True)
     page_number = serializers.IntegerField(required = True)
     page_size = serializers.IntegerField(required = True)
+
+class PaymentDetails(serializers.ModelSerializer): 
+    class Meta:
+        model = WebhookEventTrigger
+        fields = [""]
+
+class EventDetails(serializers.ModelSerializer):
+    class Meta:
+        model = Details
+        fields = ["id", "event_image", "event_name", "event_description"]
+
+class UserEventListFechSerializer(serializers.ModelSerializer):
+    event = EventDetails(read_only = True)
+    class Meta:
+        model = User_event
+        fields = ["id", "created_at", "updated_at", "transaction_status", "status", "ticket_number", "event"]
+
+class EventDateWiseSerializer(serializers.Serializer): 
+    year = serializers.IntegerField(required = True)
+    month = serializers.IntegerField(required = True)

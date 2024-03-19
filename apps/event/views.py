@@ -8,7 +8,7 @@ from apps.user.models import Event as User_event_model
 from apps.event import serializer
 from django.conf import settings
 from apps.event import helpers as event_helpers
-from djstripe.models import Session
+from django.db.models import Count
 import stripe
 from django.core.paginator import Paginator
 import json
@@ -40,42 +40,35 @@ def event_list_view(request):
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def event_details_view(request): 
+def event_details_view(request, id): 
     try:
 
-        if serializer.SerializerParticularEventDetails(data = request.query_params).is_valid():
-
-            # Fetch particular event details 
-            Particular_event_details = Event_details.objects.get(id = request.query_params.get("id"))
-            status, member_count, member_information = event_helpers.helper_get_event_joined_members(request.query_params.get("id"))
-            return Response({
-                "status": True, 
-                "message": "Fetch", 
-                "data": {
-                    "event_image": Particular_event_details.event_image, 
-                    "event_name": Particular_event_details.event_name, 
-                    "event_address": Particular_event_details.event_address, 
-                    "event_address_latitude": Particular_event_details.event_address_latitude, 
-                    "event_address_longitude": Particular_event_details.event_address_longitude, 
-                    "event_date": Particular_event_details.event_date, 
-                    "event_start_time": Particular_event_details.event_start_time, 
-                    "event_end_time": Particular_event_details.event_end_time, 
-                    "organizer_image": Particular_event_details.organizer_image, 
-                    "organizer_name": Particular_event_details.organizer_name, 
-                    "organizer_contact": Particular_event_details.organizer_contact_number, 
-                    "organizer_description": Particular_event_details.organizer_description, 
-                    "event_description":  Particular_event_details.event_description, 
-                    "event_price": Particular_event_details.price , 
-                    "event_type": Particular_event_details.event_type,
-                    "member_count": member_count, 
-                    "member_information": member_information
-                }
-            }, status=200)
-        else:
-            return Response({
-                'status': False, 
-                'message': "Failed to fetch event details"
-            }, status=400)
+        # Fetch particular event details 
+        Particular_event_details = Event_details.objects.get(id =id)
+        status, member_count, member_information = event_helpers.helper_get_event_joined_members(request.query_params.get("id"))
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": {
+                "event_image": Particular_event_details.event_image, 
+                "event_name": Particular_event_details.event_name, 
+                "event_address": Particular_event_details.event_address, 
+                "event_address_latitude": Particular_event_details.event_address_latitude, 
+                "event_address_longitude": Particular_event_details.event_address_longitude, 
+                "event_date": Particular_event_details.event_date, 
+                "event_start_time": Particular_event_details.event_start_time, 
+                "event_end_time": Particular_event_details.event_end_time, 
+                "organizer_image": Particular_event_details.organizer_image, 
+                "organizer_name": Particular_event_details.organizer_name, 
+                "organizer_contact": Particular_event_details.organizer_contact_number, 
+                "organizer_description": Particular_event_details.organizer_description, 
+                "event_description":  Particular_event_details.event_description, 
+                "event_price": Particular_event_details.price , 
+                "event_type": Particular_event_details.event_type,
+                "member_count": member_count, 
+                "member_information": member_information
+            }
+        }, status=200)
     except Exception as e:
         return Response({
             "status": False, 
@@ -180,42 +173,23 @@ def event_history_view(request):
         if serializer.event_history_serializer(data = request.query_params).is_valid():
 
             response = []
-           
             if request.query_params.get("status") == "all": 
-                user_event_ids = User_event_model.objects.filter(user_id=request.user.id).select_related("event")
-                user_event_id_paginator = Paginator(user_event_ids, int(request.query_params.get("page_size")))
-                user_event_paginator_page = user_event_id_paginator.get_page(int(request.query_params.get("page_number")))
+                user_event_ids = User_event_model.objects.filter(user_id=request.user.id).select_related("event").order_by("-id")
 
             elif request.query_params.get("status") == "Upcoming": 
-                user_event_ids = User_event_model.objects.filter(user_id=request.user.id, status = "Upcoming").select_related("event")
-                user_event_id_paginator = Paginator(user_event_ids, int(request.query_params.get("page_size")))
-                user_event_paginator_page = user_event_id_paginator.get_page(int(request.query_params.get("page_number")))
+                user_event_ids = User_event_model.objects.filter(user_id=request.user.id, status = "Upcoming").select_related("event").order_by("-id")
             
             else:
-                user_event_ids = User_event_model.objects.filter(user_id=request.user.id, status = "Completed").select_related("event")
-                user_event_id_paginator = Paginator(user_event_ids, int(request.query_params.get("page_size")))
-                user_event_paginator_page = user_event_id_paginator.get_page(int(request.query_params.get("page_number")))
+                user_event_ids = User_event_model.objects.filter(user_id=request.user.id, status = "Completed").select_related("event").order_by("-id")
+
+            user_event_id_paginator = Paginator(user_event_ids, int(request.query_params.get("page_size")))
+            user_event_paginator_page = user_event_id_paginator.get_page(int(request.query_params.get("page_number")))
+            user_event_paginator_page_data = serializer.UserEventListFechSerializer(user_event_paginator_page, many  =True)
             
-            for event_object in user_event_paginator_page:
-                if request.query_params.get("status") != "all": 
-                    event_payment = Session.objects.filter(metadata__contains={"event_id": str(event_object.event_id)}, client_reference_id = event_object.book_by_id, payment_status="paid")
-                else:
-                    event_payment = Session.objects.filter(metadata__contains={"event_id": str(event_object.event_id)}, client_reference_id = event_object.book_by_id)
-                for payment_data in event_payment:
-                    temp = {}
-                    temp["event_image"] = event_object.event.event_image
-                    temp['event_name'] = event_object.event.event_name 
-                    temp['event_date'] = event_object.event.event_date
-                    temp['ticket_number'] = event_object.ticket_number
-                    temp['event_description'] = event_object.event.event_description
-                    temp['event_status'] = event_object.status
-                    temp['payment_status'] = payment_data.payment_status
-                    temp['event_id'] = event_object.event.id
-                    response.append(temp)
             return Response({
                 'status': True, 
                 "message": "Fetch", 
-                "data": response
+                "data":user_event_paginator_page_data.data
             }, status=200)
         else:
             return Response({
@@ -228,3 +202,40 @@ def event_history_view(request):
             'message': "Network request failed"
         }, status=500)
     
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_date_view(request):
+    try:
+
+        if serializer.EventDateWiseSerializer(data = request.data).is_valid():
+            user_id = request.user.id 
+            month = request.data['month']
+            year = request.data['year']
+
+            user_date_wise_event = (
+                User_event_model.objects
+                .filter(user_id=user_id, event__event_date__year=year, event__event_date__month=month)
+                .values('event__event_date')
+                .annotate(count=Count('id'))
+                .order_by('event__event_date')
+                .values('event__event_date', 'count')
+            )
+
+            return Response({
+                'status': True, 
+                "message" : "Fetch", 
+                "data": user_date_wise_event
+            }, status=200)
+        
+        else:
+            return Response({
+                'status': False, 
+                "message": "Network request failed"
+            }, status=500)
+    except Exception as e : 
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
