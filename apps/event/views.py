@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from datetime import datetime
 from apps.event.models import Details as Event_details 
 from apps.user.models import Event as User_event_model
+from apps.event.models import Gallery as Event_gallery_model
 from apps.event import serializer
 from django.conf import settings
 from apps.event import helpers as event_helpers
@@ -245,15 +246,34 @@ def event_date_view(request):
 @permission_classes([CheckUserAuthentication])
 def event_particulardate_view(request):
     try:
-
         date = request.data['date']
-
-        User_particular_date_event = User_event_model.objects.filter(user_id = request.user.id, event__event_date = date, status = "Upcoming")
+        User_particular_date_event = User_event_model.objects.filter(user_id = request.user.id, event__event_date = date, status = "Upcoming").order_by("-id")
         User_particular_date_event = serializer.EventDateWiseData(User_particular_date_event, many = True)
         return Response({
             'status': True, 
             "message": "Fetch", 
             "data": User_particular_date_event.data
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_gallery_view(request, id):
+    try:
+
+        Event_images = Event_gallery_model.objects.filter(event_id = id).order_by("-id")
+        Event_images_paginator = Paginator(Event_images, int(request.query_params.get("page_size")))
+        Event_image_paginator_page = Event_images_paginator.get_page(int(request.query_params.get("page_number")))
+        Event_image_paginator_page_data = serializer.EventImageDataSerializer(Event_image_paginator_page, many = True)
+        return Response({
+            'status': True, 
+            "message": "Fetch", 
+            "data": Event_image_paginator_page_data.data
         }, status=200) 
     except Exception as e:
         return Response({

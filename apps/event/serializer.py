@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from apps.event.models import Details 
 from apps.user.models import Event as User_event
+from apps.event.models import Gallery
 from djstripe.models import WebhookEventTrigger
 
 class SerializerEventDetails(serializers.ModelSerializer):
@@ -52,4 +53,10 @@ class EventDateWiseData(serializers.ModelSerializer):
     event = EventDetails(read_only = True)
     class Meta:
         model = User_event
-        fields = ['id', "event"] 
+        fields = ['id', "event"]
+
+class EventImageDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gallery
+        fields = ["id", "type", "link"]
+
