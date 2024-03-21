@@ -2,6 +2,9 @@ from rest_framework import serializers
 from apps.user.models import Details as User_details 
 from apps.event.models import Details as Event_details 
 from djstripe.models import Session
+from apps.user.models import Event as User_event
+from djstripe.models import WebhookEventTrigger
+import json 
 
 class SerializerCreateSuperUser(serializers.Serializer): 
     email = serializers.CharField(required = True)
@@ -104,3 +107,40 @@ class UserListDataFetch(serializers.ModelSerializer):
     class Meta:
         model = User_details
         fields = ["id", "profile_image", "profession", "first_name", "last_name"]
+
+class EventQrScanSerializer(serializers.Serializer): 
+    ticket_number = serializers.CharField(required = True)
+
+class TicketEventDetails(serializers.ModelSerializer):
+    class Meta:
+        model = Event_details
+        fields = ["id", "event_name", "event_date"]
+
+class ParticularEventDetailsFetch(serializers.ModelSerializer):
+    event = TicketEventDetails(read_only = True) 
+    book_by_username = serializers.SerializerMethodField()
+    payment = serializers.SerializerMethodField() 
+    number_of_seat = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User_event 
+        fields = ["id", "ticket_number", "event", "book_by_username", "payment", "number_of_seat"]
+    
+    def get_book_by_username(self, object): 
+        return {
+            "username": object.book_by.first_name, 
+            "mobilenbumber": object.book_by.mobile
+        }
+    
+    def get_payment(self, object): 
+        Event_data = WebhookEventTrigger.objects.filter(id = object.payment_id).values("body").first()
+        Event_metadata = json.loads(Event_data['body'])
+        return {
+                "paid_amount": Event_metadata['data']['object']['amount_total'], 
+                "payment_type": Event_metadata['data']['object']['payment_method_types'], 
+                "payment_status": Event_metadata['data']['object']['status']
+            }
+
+    def get_number_of_seat(self, object): 
+        Number_of_seat_count = User_event.objects.filter(payment_id = object.payment_id, transaction_status = "Complete").count()
+        return Number_of_seat_count        

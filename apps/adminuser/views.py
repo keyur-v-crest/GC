@@ -9,6 +9,7 @@ from apps.user.helpers import CheckUserAuthentication
 import uuid
 from apps.event.models import Details as Event_details 
 from apps.event.models import Gallery as Event_gallery
+from apps.user.models import Event as User_event_model 
 from django.core.paginator import Paginator 
 from djstripe.models import Session
 
@@ -376,5 +377,48 @@ def user_details_view(request, id):
     except Exception as e :
         return Response({
             "status": False,
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_qrscan_view(request):
+    try:
+
+        if serializer.EventQrScanSerializer(data = request.data).is_valid():
+            ticket_information = User_event_model.objects.filter(ticket_number = request.data['ticket_number']).values("event__event_name", "event__event_image", "event__category__category_name", "id").first()
+            return Response({
+                "status": True,
+                "message": "Fetch", 
+                "data": ticket_information
+            }, status=200)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to fetch ticket information "
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_ticketdetails_view(request, id):
+    try:
+
+        Particular_ticket_details = User_event_model.objects.filter(id = id)
+        Particular_ticket_details = serializer.ParticularEventDetailsFetch(Particular_ticket_details, many = True)
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": Particular_ticket_details.data[0]
+        }, status=200)
+    except Exception as e: 
+        return Response({
+            "status": False, 
             "message": "Network request failed"
         }, status=500)

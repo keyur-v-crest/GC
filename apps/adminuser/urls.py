@@ -19,4 +19,6 @@ urlpatterns = [
     path("event/get", views.RouteGetEventDetails, name="event-list"), 
     path("event/id", views.RouteGetParticularEventDetails, name="particular-event-details"), 
     path("event/update", views.RouteUpdateEventDetails, name="update-event-details"), 
+    path("event/qrscan", views.event_qrscan_view, name="event_qr_scan"), 
+    path("event/ticket/<int:id>", views.event_ticketdetails_view, name="event_ticketdetails_view")
 ]
