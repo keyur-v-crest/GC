@@ -12,6 +12,7 @@ urlpatterns = [
 
     # User related route 
     path("user", views.user_list_view, name="user_list_view"),  
+    path("user/<int:id>", views.user_details_view, name="user_details_view"), 
 
     # Event related route
     path("event/create", views.RouteCreateEvent, name="create-event"), 

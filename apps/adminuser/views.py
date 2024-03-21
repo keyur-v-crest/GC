@@ -346,9 +346,35 @@ def user_list_view(request):
             "data": User_list_paginator_page_data.data
         }, status=200)
     except Exception as e:
-        print("Error message information -------------->")
-        print(e)
         return Response({
             "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_details_view(request, id):
+    try:
+        Particular_user_object = User_details.objects.get(id = id)
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": {
+                "first_name": Particular_user_object.first_name, 
+                "profession": Particular_user_object.profession, 
+                "gender": Particular_user_object.gender, 
+                "dob": Particular_user_object.dob, 
+                "phone_number": Particular_user_object.mobile, 
+                "email": Particular_user_object.email, 
+                "address":  Particular_user_object.address, 
+                "professional_description": Particular_user_object.profession_description, 
+                "profile_image": Particular_user_object.profile_image
+            }
+        }, status=200)
+    except Exception as e :
+        return Response({
+            "status": False,
             "message": "Network request failed"
         }, status=500)
