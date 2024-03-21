@@ -329,3 +329,26 @@ def transaction_view(request):
             "message": "Network request failed"
         }, status=500)
         
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_list_view(request):
+    try:
+
+        User_list = User_details.objects.filter(is_admin = False).order_by("-id")
+        User_list_paginator = Paginator(User_list, int(request.query_params.get("page_size")))
+        User_list_paginator_page = User_list_paginator.get_page(int(request.query_params.get("page_number")))
+        User_list_paginator_page_data = serializer.UserListDataFetch(User_list_paginator_page, many = True)
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": User_list_paginator_page_data.data
+        }, status=200)
+    except Exception as e:
+        print("Error message information -------------->")
+        print(e)
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)

@@ -99,3 +99,8 @@ class TransactionListDataFetch(serializers.ModelSerializer):
                 return {}
         except Exception as e:
             return {}
+        
+class UserListDataFetch(serializers.ModelSerializer): 
+    class Meta:
+        model = User_details
+        fields = ["id", "profile_image", "profession", "first_name", "last_name"]
