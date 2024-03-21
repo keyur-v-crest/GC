@@ -301,3 +301,22 @@ def RouteUpdateEventDetails(request):
             'message': "Network request failed"
         }, status=400)  
         
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_latest_view(request):
+    try:
+
+        Event_list = Event_details.objects.all().order_by("-id")
+        Event_list_paginator = Paginator(Event_list, int(request.query_params.get("page")))
+
+        return Response({
+            "status": True, 
+            "message": "Fetch"
+        }, status=200)
+    except Exception as e:
+        return Response({
+            'status': False, 
+            "message": "Network request failed"
+        }, status=500)

@@ -37,7 +37,7 @@ class PaymentDetails(serializers.ModelSerializer):
 class EventDetails(serializers.ModelSerializer):
     class Meta:
         model = Details
-        fields = ["id", "event_image", "event_name", "event_description", "organizer_name", "price"]
+        fields = ["id", "event_image", "event_name", "event_description", "organizer_name", "price", "event_address", "event_address_latitude", "event_address_longitude"]
 
 class UserEventListFechSerializer(serializers.ModelSerializer):
     event = EventDetails(read_only = True)
@@ -60,3 +60,19 @@ class EventImageDataSerializer(serializers.ModelSerializer):
         model = Gallery
         fields = ["id", "type", "link"]
 
+class EventFilterDataSerializer(serializers.ModelSerializer):
+    event = EventDetails(read_only = True)
+    class Meta:
+        model = User_event
+        fields = ["id", "event"]
+
+class TickerEventDetails(serializers.ModelSerializer): 
+    class Meta:
+        model = Details
+        fields = ['id', "event_image", "event_name", "event_date", "organizer_name"]
+
+class EventTicketDataSerializer(serializers.ModelSerializer): 
+    event = TickerEventDetails(read_only = True)
+    class Meta: 
+        model = User_event
+        fields = ["id", "event", "ticket_number"]

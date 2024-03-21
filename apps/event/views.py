@@ -158,8 +158,6 @@ def event_payment_view(request):
                 'message': "Failed to created payment session"
             }, status=400)
     except Exception as e:
-        print("Error -------- ")
-        print(e)
         return Response({
             'status': False, 
             'message': "Network request failed"
@@ -265,7 +263,6 @@ def event_particulardate_view(request):
 @permission_classes([CheckUserAuthentication])
 def event_gallery_view(request, id):
     try:
-
         Event_images = Event_gallery_model.objects.filter(event_id = id).order_by("-id")
         Event_images_paginator = Paginator(Event_images, int(request.query_params.get("page_size")))
         Event_image_paginator_page = Event_images_paginator.get_page(int(request.query_params.get("page_number")))
@@ -275,6 +272,49 @@ def event_gallery_view(request, id):
             "message": "Fetch", 
             "data": Event_image_paginator_page_data.data
         }, status=200) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_filter_view(request):
+    try:
+        
+        filter_status = request.query_params.get("status")
+        User_filter_event = User_event_model.objects.filter(user_id = request.user.id, status = filter_status).order_by("-event__event_date")
+        User_filter_event_paginator = Paginator(User_filter_event, int(request.query_params.get("page_size")))
+        User_filter_event_paginator_page = User_filter_event_paginator.get_page(int(request.query_params.get("page_number")))
+        User_filter_event_paginator_page_data = serializer.EventFilterDataSerializer(User_filter_event_paginator_page, many = True)
+        return Response({
+            'status': True, 
+            'message': "Fetch", 
+            "data":User_filter_event_paginator_page_data.data
+        }, status=200)
+    except Exception as e:
+        return Response({
+            'status': False, 
+            "message": "Network request failed"
+        }, status=500) 
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_ticketlist_view(request): 
+    try:
+
+        User_ticket = User_event_model.objects.filter(user_id = request.user.id, status = "Upcoming", transaction_status = "Complete").order_by("-event__event_date")
+        User_ticket_paginator = Paginator(User_ticket, int(request.query_params.get("page_size")))
+        User_ticket_paginator_page = User_ticket_paginator.get_page(int(request.query_params.get("page_number")))
+        User_ticket_paginator_page_data = serializer.EventTicketDataSerializer(User_ticket_paginator_page, many = True)
+        return Response({
+            'status': True, 
+            "message": "Fetch", 
+            "data": User_ticket_paginator_page_data.data
+        })
     except Exception as e:
         return Response({
             'status': False, 

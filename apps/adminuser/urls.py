@@ -11,4 +11,6 @@ urlpatterns = [
     path("event/get", views.RouteGetEventDetails, name="event-list"), 
     path("event/id", views.RouteGetParticularEventDetails, name="particular-event-details"), 
     path("event/update", views.RouteUpdateEventDetails, name="update-event-details"), 
+    path("event/latest", views.event_latest_view, name="event_latest")
+
 ]
