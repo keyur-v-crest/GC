@@ -444,8 +444,6 @@ def event_transaction_view(request, id):
             }
         }, status=200)
     except Exception as e:
-        print("Error messgae information ----------->")
-        print(e)
         return Response({
             "status": False, 
             "message": "Network request failed"
