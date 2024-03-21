@@ -422,3 +422,31 @@ def event_ticketdetails_view(request, id):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_transaction_view(request, id): 
+    try:
+
+        Event_information = Event_details.objects.filter(id = id).values("event_image", "event_name", "event_address", "organizer_name").first() 
+        Event_transaction = Session.objects.filter(metadata__contains={"event_id": str(id), "type": "event"}, payment_status= "paid")
+        Event_transaction_paginator = Paginator(Event_transaction, int(request.query_params.get("page_size")))
+        Event_transaction_paginator_page = Event_transaction_paginator.get_page(int(request.query_params.get("page_number")))
+        Event_transaction_paginator_page_data = serializer.EventTransactionDetailsData(Event_transaction_paginator_page, many = True)
+
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": {
+                "event": Event_information, 
+                "event_transaction": Event_transaction_paginator_page_data.data
+            }
+        }, status=200)
+    except Exception as e:
+        print("Error messgae information ----------->")
+        print(e)
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)

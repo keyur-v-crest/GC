@@ -144,3 +144,14 @@ class ParticularEventDetailsFetch(serializers.ModelSerializer):
     def get_number_of_seat(self, object): 
         Number_of_seat_count = User_event.objects.filter(payment_id = object.payment_id, transaction_status = "Complete").count()
         return Number_of_seat_count        
+    
+class EventTransactionDetailsData(serializers.ModelSerializer): 
+    transaction_username = serializers.SerializerMethodField()
+    class Meta:
+        model = Session
+        fields = ['id', "payment_method_types", "amount_total", "djstripe_created", "djstripe_updated", "transaction_username"]
+    
+    def get_transaction_username(self, object): 
+        client_reference_id = object.client_reference_id
+        User_data = User_details.objects.filter(id = client_reference_id).values("profile_image", "first_name").first()
+        return User_data
