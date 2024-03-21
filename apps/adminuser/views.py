@@ -10,7 +10,7 @@ import uuid
 from apps.event.models import Details as Event_details 
 from apps.event.models import Gallery as Event_gallery
 from django.core.paginator import Paginator 
-from datetime import datetime
+from djstripe.models import Session
 
 @api_view(["POST"])
 def RouteCreateSuperUser(request): 
@@ -300,23 +300,32 @@ def RouteUpdateEventDetails(request):
             'status': False, 
             'message': "Network request failed"
         }, status=400)  
-        
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def event_latest_view(request):
+def transaction_view(request): 
     try:
 
-        Event_list = Event_details.objects.all().order_by("-id")
-        Event_list_paginator = Paginator(Event_list, int(request.query_params.get("page")))
+        # Fetch event transaction information 
+        status = request.query_params.get("status")
 
+        if status == "all":
+            Transaction_list = Session.objects.filter(payment_status = "paid")
+        else:
+            Transaction_list = Session.objects.filter(metadata__contains={"type": str(status)}) 
+        
+        Transaction_list = Paginator(Transaction_list, int(request.query_params.get("page_size")))
+        Transaction_list_paginator = Transaction_list.get_page(int(request.query_params.get("page_number")))
+        Transaction_list_paginator_data = serializer.TransactionListDataFetch(Transaction_list_paginator, many = True)
         return Response({
             "status": True, 
-            "message": "Fetch"
+            'message': "Fetch", 
+            "data": Transaction_list_paginator_data.data
         }, status=200)
     except Exception as e:
         return Response({
             'status': False, 
             "message": "Network request failed"
         }, status=500)
+        

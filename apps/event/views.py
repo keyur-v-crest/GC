@@ -107,7 +107,8 @@ def event_payment_view(request):
                 metadata = {
                     "event_id": request.data['event_id'], 
                     "event_type": request.data['event_type'], 
-                    "event_user": json.dumps(user_list)
+                    "event_user": json.dumps(user_list), 
+                    "type": "event"
                 }
 
                 session = stripe.checkout.Session.create(
