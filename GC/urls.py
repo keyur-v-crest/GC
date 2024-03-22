@@ -23,5 +23,6 @@ urlpatterns = [
     path("api/category/", include("apps.category.urls")), 
     path("api/user/", include("apps.user.urls")), 
     path("api/adminuser/", include("apps.adminuser.urls")), 
-    path("api/event/", include("apps.event.urls"))
+    path("api/event/", include("apps.event.urls")), 
+    path("api/donation", include("apps.donation.urls"))
 ]

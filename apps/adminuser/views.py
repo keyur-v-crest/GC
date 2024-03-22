@@ -10,6 +10,7 @@ import uuid
 from apps.event.models import Details as Event_details 
 from apps.event.models import Gallery as Event_gallery
 from apps.user.models import Event as User_event_model 
+from apps.donation.models import Details as Donation_model
 from django.core.paginator import Paginator 
 from djstripe.models import Session
 
@@ -444,6 +445,72 @@ def event_transaction_view(request, id):
             }
         }, status=200)
     except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_create_view(request):
+    try:
+
+        if serializer.CreateDonationSerializer(data = request.data).is_valid():
+            
+            # Check donation name 
+            check_donation_name = Donation_model.objects.filter(donation_name = request.data['donation_name']).count()
+
+            if check_donation_name > 0:
+                return Response({
+                    "status": False, 
+                    "message": "Already create donation with this name"
+                }, status=400)
+            else:
+                New_donation = Donation_model.objects.create(
+                    image = request.data['image'], 
+                    donation_name = request.data['donation_name'], 
+                    donation_target = request.data['donation_target'], 
+                    donation_start_date = request.data['donation_start_date'], 
+                    donation_end_date = request.data['donation_end_date'], 
+                    location = request.data['location'], 
+                    donation_address = request.data['donation_address'], 
+                    description = request.data['description'], 
+                    organizer_name = request.data['organizer_name'], 
+                    organizer_contact = request.data['organizer_contact'], 
+                    donation_create_by_id = request.user.id
+                )
+                return Response({
+                    "status": True, 
+                    "message": "Create"
+                }, status=200)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to create donation"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_list_view(request): 
+    try:
+        Donation_data = Donation_model.objects.all().order_by("-id")
+        Donation_data_paginator = Paginator(Donation_data, int(request.query_params.get("page_number")))
+        Donation_data_paginator_page = Donation_data_paginator.get_page(int(request.query_params.get("page_size")))
+        Donation_data_paginator_page_data = serializer.DonationListDataFetch(Donation_data_paginator_page, many = True)
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": Donation_data_paginator_page_data.data
+        }, status=200)
+    except Exception as e:
+        print(e)
         return Response({
             "status": False, 
             "message": "Network request failed"

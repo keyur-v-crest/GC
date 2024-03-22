@@ -3,6 +3,7 @@ from apps.user.models import Details as User_details
 from apps.event.models import Details as Event_details 
 from djstripe.models import Session
 from apps.user.models import Event as User_event
+from apps.donation.models import Details as Donation_details
 from djstripe.models import WebhookEventTrigger
 import json 
 
@@ -155,3 +156,21 @@ class EventTransactionDetailsData(serializers.ModelSerializer):
         client_reference_id = object.client_reference_id
         User_data = User_details.objects.filter(id = client_reference_id).values("profile_image", "first_name").first()
         return User_data
+    
+class CreateDonationSerializer(serializers.Serializer): 
+    donation_name = serializers.CharField(required = True)
+    category = serializers.IntegerField(required = True)
+    donation_target = serializers.FloatField(required = True) 
+    image = serializers.CharField(required = True)
+    donation_start_date = serializers.CharField(required = True)
+    donation_end_date = serializers.CharField(required = True)
+    location = serializers.CharField(required = True)
+    donation_address = serializers.CharField(required = True)
+    description = serializers.CharField(required = True)
+    organizer_name = serializers.CharField(required = True)
+    organizer_contact = serializers.CharField(required  = True)
+    
+class DonationListDataFetch(serializers.ModelSerializer): 
+    class Meta:
+        model = Donation_details 
+        fields = ["id", "donation_name", "image", "image", "location", "donation_target", "organizer_name", "created_at", "updated_at"]
