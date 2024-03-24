@@ -21,6 +21,8 @@ urlpatterns = [
     path("transaction", views.transaction_view, name="transaction_view"), 
 
     path("donation/create", views.donation_create_view, name="donation_create"), 
-    path("donation", views.donation_list_view, name="donation_list")
+    path("donation", views.donation_list_view, name="donation_list"), 
+
+    path("uploadImage", views.admin_upload_image, name="admin_upload_image")
     
 ]

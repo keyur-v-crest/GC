@@ -176,3 +176,6 @@ class DonationListDataFetch(serializers.ModelSerializer):
         model = Donation_details 
         fields = ["id", "donation_name", "image", "image", "location", "donation_target", "organizer_name", "created_at", "updated_at"]
 
+class UploadImageSerializer(serializers.Serializer):
+    image = serializers.FileField(required = True)
+    type = serializers.CharField(required = True)

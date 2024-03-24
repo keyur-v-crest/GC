@@ -13,6 +13,9 @@ from apps.user.models import Event as User_event_model
 from apps.donation.models import Details as Donation_model
 from django.core.paginator import Paginator 
 from djstripe.models import Session
+import uuid
+from apps.adminuser.models import Image
+from django.conf import settings
 
 @api_view(["POST"])
 def RouteAdminLogin(request): 
@@ -543,4 +546,45 @@ def donation_update_view(request, id):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
-    
+
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def admin_upload_image(request):
+    try:
+
+        if serializer.UploadImageSerializer(data = request.data).is_valid():
+
+            # new unique id
+            unique_id = str(uuid.uuid4())
+
+            file_name = request.FILES['image'].name 
+
+            # Upload file name 
+            update_file_name = f"{unique_id}.{str(file_name).split('.')[1]}"
+            request.FILES['image'].name = update_file_name
+
+            # upload new image 
+
+            upload_new_image = Image(
+                image = request.FILES["image"]
+            )
+
+            upload_new_image.save() 
+            update_file_name = update_file_name.replace(" ", "_")
+
+            return Response({
+                "status": True, 
+                "message": "Upload", 
+                'image_url': f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/image/{update_file_name}"
+            }, status=200)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to upload image"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
