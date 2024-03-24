@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'apps.news', 
     'apps.event', 
     'apps.adminuser', 
-    "apps.donation"
+    "apps.donation", 
+    "storages"
 ]
 
 MIDDLEWARE = [
@@ -130,6 +131,18 @@ DJSTRIPE_USE_NATIVE_JSONFIELD = True  # We recommend setting to True for new ins
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 DJSTRIPE_SUBSCRIBER_MODEL = "user.Details"
 
+# Configure amazon S3 bucket protocol
+AWS_ACCESS_KEY_ID = 'AKIAVQQ7IWNEBIUZSW6I'
+AWS_SECRET_ACCESS_KEY = 'l5P9kPB/4KnWJHOrJ7hmhZ1Yd9uvoAMFnA2Q2hKh'
+AWS_STORAGE_BUCKET_NAME = 'gc-application-storage'
+AWS_S3_REGION_NAME = 'us-east-1'  # e.g., us-east-1
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+
+# For serving static files directly from S3
+AWS_S3_URL_PROTOCOL = 'https'
+AWS_S3_USE_SSL = True
+AWS_S3_VERIFY = True
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
@@ -145,7 +158,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = f'{AWS_S3_URL_PROTOCOL}://{AWS_S3_CUSTOM_DOMAIN}/static/'
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+MEDIA_URL = f'{AWS_S3_URL_PROTOCOL}://{AWS_S3_CUSTOM_DOMAIN}/media/'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
