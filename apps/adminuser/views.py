@@ -15,6 +15,64 @@ from django.core.paginator import Paginator
 from djstripe.models import Session
 
 @api_view(["POST"])
+def RouteAdminLogin(request): 
+    try:
+        if serializer.SerializerUserLogin(data = request.data).is_valid():
+            try: 
+                User_object = User_details.objects.get(email = request.data['email'], is_admin = True, is_superuser = request.data['is_superadmin'])
+                if check_password(request.data['password'], User_object.password):
+                    Refersh_token = RefreshToken.for_user(User_object)
+                    return Response({
+                        'status': True, 
+                        'message': "Login successfully", 
+                        'data': {
+                            "access_token": str(Refersh_token.access_token), 
+                            "first_name": User_object.first_name, 
+                            "profile_image": User_object.profile_image
+                        }
+                    }, status=200)
+                else:
+                    return Response({
+                        'status': False, 
+                        'message': "Invalid password"
+                    }, status=400)
+            except Exception as e: 
+                return Response({
+                    'status': False, 
+                    'message': 'User not found'
+                }, status=400)
+        else:
+            return Response({
+                'stutus': False, 
+                'message': "Failed to login"
+            }, status=400)
+    except Exception as e: 
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def admin_check_view(request):
+    try:
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data":{
+                "first_name": request.user.first_name, 
+                "profile_image": request.user.profile_image
+            }
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+
+    
+@api_view(["POST"])
 def RouteCreateSuperUser(request): 
     try:
 
@@ -50,50 +108,6 @@ def RouteCreateSuperUser(request):
         
     except Exception as e:
         
-        return Response({
-            'status': False, 
-            'message': "Network request failed"
-        }, status=500)
-
-@api_view(["POST"])
-def RouteAdminLogin(request): 
-    pass 
-    try:
-        
-        if serializer.SerializerUserLogin(data = request.data).is_valid():
-            
-            try: 
-
-                User_object = User_details.objects.get(email = request.data['email'], is_admin = True)
-
-                if check_password(request.data['password'], User_object.password):
-                    
-                    Refersh_token = RefreshToken.for_user(User_object)
-
-                    return Response({
-                        'status': True, 
-                        'message': "Login successfully", 
-                        'data': {
-                            "access_token": str(Refersh_token.access_token)
-                        }
-                    }, status=200)
-                else:
-                    return Response({
-                        'status': False, 
-                        'message': "Invalid password"
-                    }, status=400)
-            except Exception as e: 
-                return Response({
-                    'status': False, 
-                    'message': 'User not found'
-                }, status=400)
-
-        else:
-            return Response({
-                'stutus': False, 
-                'message': "Failed to login"
-            }, status=400)
-    except Exception as e: 
         return Response({
             'status': False, 
             'message': "Network request failed"
@@ -510,8 +524,23 @@ def donation_list_view(request):
             "data": Donation_data_paginator_page_data.data
         }, status=200)
     except Exception as e:
-        print(e)
         return Response({
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_update_view(request, id): 
+    try:
+        return Response({
+            "status": True, 
+            "message": "Update"
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    

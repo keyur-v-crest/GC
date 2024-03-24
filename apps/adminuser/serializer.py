@@ -16,6 +16,7 @@ class SerializerCreateSuperUser(serializers.Serializer):
 class SerializerUserLogin(serializers.Serializer): 
     email = serializers.CharField(required = True)
     password = serializers.CharField(required = True)
+    is_superadmin = serializers.BooleanField(required = True)
 
 
 class SerializersUserFetch(serializers.ModelSerializer): 
@@ -174,3 +175,4 @@ class DonationListDataFetch(serializers.ModelSerializer):
     class Meta:
         model = Donation_details 
         fields = ["id", "donation_name", "image", "image", "location", "donation_target", "organizer_name", "created_at", "updated_at"]
+
