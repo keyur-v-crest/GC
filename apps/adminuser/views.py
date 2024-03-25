@@ -16,6 +16,7 @@ from djstripe.models import Session
 import uuid
 from apps.adminuser.models import Image
 from django.conf import settings
+from django.db.models import Sum
 
 @api_view(["POST"])
 def RouteAdminLogin(request): 
@@ -139,11 +140,10 @@ def RouteGetAllAdmin(request):
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def RouteCreateEvent(requets): 
+def event_create_view(requets): 
     try:
 
         if serializer.SerializerCreateEvent(data = requets.data).is_valid():
-
             # Create new event 
             New_event = Event_details.objects.create(
                 event_name = requets.data['event_name'], 
@@ -158,31 +158,14 @@ def RouteCreateEvent(requets):
                 event_address_latitude = requets.data['event_address_latitude'], 
                 event_address_longitude = requets.data['event_address_longitude'], 
                 event_image = requets.data['event_image'], 
-                number_of_people = requets.data['number_of_people'], 
                 number_of_seat = requets.data['number_of_seat'], 
                 organizer_name = requets.data['organizer_name'], 
                 organizer_contact_number = requets.data['organizer_contact_number'], 
-                organizer_description = requets.data['organizer_description'], 
                 event_create_by_id = requets.user.id, 
-                organizer_image = requets.data['organizer_image'], 
-                event_type = requets.data['event_type']
+                is_vip_seat = requets.data['is_vip_seat'], 
+                event_address_city = requets.data['event_city'], 
+                event_address_state = requets.data['event_state']
             )
-
-            # Store event gallery information 
-            event_gallery_bulk_insert = []
-
-            for item in requets.data['event_gallery']:
-                event_type = item['type']
-                event_image = item['value']
-                event_gallery_bulk_insert.append(
-                    Event_gallery(
-                        event_id = New_event.id, 
-                        type = event_type, 
-                        link = event_image
-                    )
-                )
-            Event_gallery.objects.bulk_create(event_gallery_bulk_insert)
-
             return Response({
                 'status': True, 
                 'message': 'Create'
@@ -193,7 +176,6 @@ def RouteCreateEvent(requets):
                 "message": "Failed to create event"
             }, status=400)
     except Exception as e: 
-
         return Response({
             'status': False, 
             'message': "Network request failed"
@@ -202,7 +184,7 @@ def RouteCreateEvent(requets):
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def RouteGetEventDetails(request):
+def event_list_view(request):
     try:
 
         if serializer.SerializerPaginator(data = request.data).is_valid():
@@ -229,44 +211,46 @@ def RouteGetEventDetails(request):
             'message': "Network request failed"
         }, status=400) 
     
-@api_view(["POST"])
+@api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def RouteGetParticularEventDetails(request): 
+def event_details_view(request, id): 
     try:
 
-        if serializer.SerializersFetchParticularEventDetails(data = request.data).is_valid():
-            
-            Particular_event_details = Event_details.objects.get(id = request.data['id'])
-            return Response({
-                'status': True, 
-                'message': "Fetch", 
-                "data": {
-                    "id": Particular_event_details.id, 
-                    "event_name": Particular_event_details.event_name, 
-                    "event_description": Particular_event_details.event_description, 
-                    "category": Particular_event_details.category_id, 
-                    "event_date": Particular_event_details.event_date, 
-                    "event_start_time": Particular_event_details.event_start_time, 
-                    "event_end_time": Particular_event_details.event_end_time, 
-                    "event_address": Particular_event_details.event_address, 
-                    "event_address_latitude": Particular_event_details.event_address_latitude, 
-                    "event_address_longitude": Particular_event_details.event_address_longitude, 
-                    "number_of_people": Particular_event_details.number_of_people, 
-                    "number_of_seat": Particular_event_details.number_of_seat, 
-                    "organizer_name": Particular_event_details.organizer_name, 
-                    "organizer_contact_number": Particular_event_details.organizer_contact_number, 
-                    "organizer_description": Particular_event_details.organizer_description, 
-                    "price": Particular_event_details.price
-                }
-            }, status=200)
+        # Fetch particular event details 
+        Particular_event_details = Event_details.objects.get(id = id)
+
+        # Fetch total book seat information 
+        Total_book_seat = User_event_model.objects.filter(event_id = id, transaction_status = "Complete").count()
         
-        else:
-        
-            return Response({
-                "status": False,
-                'message': "Failed"
-            }, status=400)
+        # Fetch total event earning information 
+        Total_event_eaning = Session.objects.filter(metadata__contains={"event_id": str(id)}, payment_status ="paid").aggregate(total_earning=Sum("amount_total", default = 0))
+        return Response({
+            'status': True, 
+            'message': "Fetch", 
+            "data": {
+                "id": Particular_event_details.id, 
+                "event_image": Particular_event_details.event_image, 
+                "event_name": Particular_event_details.event_name, 
+                "event_description": Particular_event_details.event_description, 
+                "category": Particular_event_details.category_id, 
+                "event_date": Particular_event_details.event_date, 
+                "event_publish_date": Particular_event_details.publish_date,
+                "event_start_time": Particular_event_details.event_start_time, 
+                "event_end_time": Particular_event_details.event_end_time, 
+                "event_address": Particular_event_details.event_address, 
+                "event_address_latitude": Particular_event_details.event_address_latitude, 
+                "event_address_longitude": Particular_event_details.event_address_longitude, 
+                "number_of_seat": Particular_event_details.number_of_seat, 
+                "organizer_name": Particular_event_details.organizer_name, 
+                "organizer_contact_number": Particular_event_details.organizer_contact_number, 
+                "price": Particular_event_details.price, 
+                "total_book_seat": int(Particular_event_details.number_of_seat) - int(Total_book_seat), 
+                "total_earning": Total_event_eaning['total_earning'], 
+                "event_city": Particular_event_details.event_address_city, 
+                "event_state": Particular_event_details.event_address_state
+            }
+        }, status=200)
         
     except Exception as e:
         return Response({
@@ -277,13 +261,13 @@ def RouteGetParticularEventDetails(request):
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def RouteUpdateEventDetails(request): 
+def event_update_view(request, id): 
     try:
 
-        if serializer.SerializerUpdateEvent(data = request.data).is_valid():
+        if serializer.SerializerCreateEvent(data = request.data).is_valid():
 
             # Particular event object 
-            Particular_event_object = Event_details.objects.get(id = request.data['id'])
+            Particular_event_object = Event_details.objects.get(id = id)
             Particular_event_object.event_name = request.data['event_name']
             Particular_event_object.event_description = request.data['event_description']
             Particular_event_object.price = request.data['price']
@@ -295,13 +279,12 @@ def RouteUpdateEventDetails(request):
             Particular_event_object.event_address_latitude = request.data['event_address_latitude']
             Particular_event_object.event_address_longitude = request.data['event_address_longitude'] 
             Particular_event_object.event_image = request.data['event_image'] 
-            Particular_event_object.number_of_people   = request.data['number_of_people']
             Particular_event_object.organizer_name = request.data['organizer_name']
             Particular_event_object.organizer_contact_number = request.data['organizer_contact_number']
-            Particular_event_object.organizer_description = request.data['organizer_description']
             Particular_event_object.number_of_seat = request.data['number_of_seat']
-            Particular_event_object.organizer_image = request.data['organizer_image']
-            Particular_event_object.event_type = request.data['event_type']
+            Particular_event_object.is_vip_seat = request.data['is_vip_seat']
+            Particular_event_object.event_address_city = request.data['event_city']
+            Particular_event_object.event_address_state = request.data['event_state']
             Particular_event_object.save()
 
             return Response({
@@ -318,7 +301,81 @@ def RouteUpdateEventDetails(request):
         return Response({
             'status': False, 
             'message': "Network request failed"
-        }, status=400)  
+        }, status=400) 
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_gallery_view(request, id):
+    try:
+
+        Particular_event_gallery_list = Event_gallery.objects.filter(event_id = id, delete = False).order_by("-id")
+        Particular_event_gallery_list_paginator = Paginator(Particular_event_gallery_list, int(request.query_params.get("page_size")))
+        Particular_event_gallery_list_paginator_page = Particular_event_gallery_list_paginator.get_page(int(request.query_params.get("page_number")))
+        Particular_event_gallery_list_paginator_page_data = serializer.EventGalleryListFetch(Particular_event_gallery_list_paginator_page, many = True)
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": Particular_event_gallery_list_paginator_page_data.data
+        }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": 'Network request failed'
+        }, status=500)
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_galleryupload_view(request, id): 
+    try:
+        if serializer.EventGalleryUploadSerializer(data = request.data).is_valid():
+
+            event_gallery_bulk_insert = []
+            for image in request.data['images']: 
+                event_gallery_bulk_insert.append(
+                    Event_gallery(
+                        type = image['type'], 
+                        link = image['image'], 
+                        event_id = id, 
+                        upload_by_id = request.user.id
+                    )
+                )
+            
+            Event_gallery.objects.bulk_create(event_gallery_bulk_insert)
+            return Response({
+                "status": True, 
+                "message": "Upload"
+            }, status=200) 
+        else:
+            return Response({
+                "status": False,
+                "message": 'Failed to upload'
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": 'Network request failed'
+        }, status=500)
+    
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_gallerydelete_view(request, id):
+    try:
+
+        Event_gallery.objects.filter(id = id).update(delete = True)
+        return Response({
+            "status": True, 
+            "message": "Delete"
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": 'Network request failed'
+        }, status=500)
+
+
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
@@ -576,7 +633,7 @@ def admin_upload_image(request):
             return Response({
                 "status": True, 
                 "message": "Upload", 
-                'image_url': f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/image/{update_file_name}"
+                'image_url': f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/image/{update_file_name}"
             }, status=200)
         else:
             return Response({
@@ -588,3 +645,4 @@ def admin_upload_image(request):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+    

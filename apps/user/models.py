@@ -27,6 +27,7 @@ class Details(AbstractUser, PermissionsMixin):
     sub_member = models.BooleanField(default = False) 
     profile_image = models.CharField(null = True, max_length = 200, default = None)
     is_admin = models.BooleanField(default = False)
+    account_status = models.CharField(max_length = 100, default = None, null = True)
 
     def save(self, *args, **kwargs): 
         self.updated_at = timezone.now() 

@@ -106,3 +106,25 @@ def category_selection_view(request):
             'status': False, 
             'message': "Network request failed"
         }, status=500)  
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def category_details_view(request, id):
+    try:
+
+        Category_data = Category_details.objects.get(id = id)
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": {
+                "category_name": Category_data.category_name, 
+                "category_image": Category_data.category_image, 
+                "is_active": Category_data.is_active
+            }
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)  

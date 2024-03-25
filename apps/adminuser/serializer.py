@@ -1,6 +1,7 @@
 from rest_framework import serializers 
 from apps.user.models import Details as User_details 
 from apps.event.models import Details as Event_details 
+from apps.event.models import Gallery as Event_gallery
 from djstripe.models import Session
 from apps.user.models import Event as User_event
 from apps.donation.models import Details as Donation_details
@@ -37,14 +38,12 @@ class SerializerCreateEvent(serializers.Serializer):
     event_address_latitude = serializers.CharField(required = True)
     event_address_longitude = serializers.CharField(required = True)
     event_image = serializers.CharField(required = True)
-    event_gallery = serializers.ListField(required = True)
-    number_of_people = serializers.IntegerField(required = True)
     number_of_seat = serializers.IntegerField(required = True)
     organizer_name = serializers.CharField(required = True)
     organizer_contact_number = serializers.CharField(required = True)
-    organizer_description = serializers.CharField(required = True)
-    organizer_image = serializers.CharField(required = True, allow_blank = True, allow_null = True)
-    event_type = serializers.BooleanField(required = True)
+    is_vip_seat = serializers.BooleanField(required = True)
+    event_city = serializers.CharField(required = True)
+    event_state = serializers.CharField(required = True)
 
 class SerializerUpdateEvent(serializers.Serializer): 
     id = serializers.IntegerField(required = True)
@@ -72,19 +71,17 @@ class SerializerPaginator(serializers.Serializer):
     page_number = serializers.IntegerField(required = True)
     page_size = serializers.IntegerField(required = True) 
 
-class SerializersFetchParticularEventDetails(serializers.Serializer): 
-    id = serializers.IntegerField(required = True)
 
 class SerializerFetchEventList(serializers.ModelSerializer):
 
-    category_name = serializers.SerializerMethodField()
+    category_image = serializers.SerializerMethodField()
 
     class Meta: 
         model = Event_details 
-        fields = ['id', "category_name", "event_image", "event_date", "event_start_time", "event_name", "event_description", "event_address", "event_address_latitude", "event_address_longitude"]
+        fields = ['id', "category_image", "event_image", "event_date", "event_start_time", "event_name", "event_description", "event_address", "event_address_latitude", "event_address_longitude", "price"]
 
-    def get_category_name(self, obj):
-        return obj.category.category_name
+    def get_category_image(self, obj):
+        return obj.category.category_image
 
 class TransactionListDataFetch(serializers.ModelSerializer): 
     event_details = serializers.SerializerMethodField()
@@ -178,4 +175,12 @@ class DonationListDataFetch(serializers.ModelSerializer):
 
 class UploadImageSerializer(serializers.Serializer):
     image = serializers.FileField(required = True)
-    type = serializers.CharField(required = True)
+    # type = serializers.CharField(required = True)
+
+class EventGalleryListFetch(serializers.ModelSerializer): 
+    class Meta:
+        model = Event_gallery
+        fields = ["id", "link", "type"]
+
+class EventGalleryUploadSerializer(serializers.Serializer):
+    images = serializers.ListField(required = True)
