@@ -99,15 +99,16 @@ def event_details_view(request, id):
                 "organizer_image": Particular_event_details.organizer_image, 
                 "organizer_name": Particular_event_details.organizer_name, 
                 "organizer_contact": Particular_event_details.organizer_contact_number, 
-                "organizer_description": Particular_event_details.organizer_description, 
                 "event_description":  Particular_event_details.event_description, 
                 "event_price": Particular_event_details.price , 
-                "event_type": Particular_event_details.event_type,
+                "is_vip_seat": Particular_event_details.is_vip_seat,
                 "member_count": member_count, 
                 "member_information": member_information
             }
         }, status=200)
     except Exception as e:
+        print("Error message ==========?")
+        print(e)
         return Response({
             "status": False, 
             "message": "Network request failed"
