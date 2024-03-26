@@ -10,6 +10,7 @@ import uuid
 from apps.event.models import Details as Event_details 
 from apps.event.models import Gallery as Event_gallery
 from apps.user.models import Event as User_event_model 
+from apps.news.models import Details as News_model
 from apps.donation.models import Details as Donation_model
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from djstripe.models import Session
@@ -876,3 +877,150 @@ def dashboard_count_view(request):
             "status": False, 
             "message": "Network reqwuest failed"
         }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def news_create_view(request):
+    try:
+
+        if serializer.NewsCreateSerializer(data = request.data).is_valid():
+            News_object = News_model.objects.create(
+                image = request.data['image'], 
+                name = request.data['name'], 
+                news_type = request.data['news_type'], 
+                short_description = request.data['short_description'], 
+                publish_date = request.data['publish_date'], 
+                description = request.data['description'], 
+                create_by = request.user.id
+            )
+
+            if request.data['news_type'] == "Announcement":
+                News_object.author_name = request.data['author_name']
+                News_object.author_image = request.data['author_image']
+                News_object.save()
+
+            return Response({
+                "status": True, 
+                "message": "Create"
+            }, status=200)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to create news"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network reqwuest failed"
+        }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def news_details_view(request, id):
+    try:
+
+        News_object = News_model.objects.get(id = id)
+        return Response({
+            "status": True,
+            "message": "Fetch", 
+            "data": {
+                "image": News_object.image, 
+                "name": News_object.name, 
+                "news_type": News_object.news_type,
+                "short_description": News_object.short_description, 
+                "publish_date": News_object.publish_date, 
+                "description": News_object.description, 
+                "author_name": News_object.author_name,
+                "author_image": News_object.author_image
+            }
+        }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def news_update_view(request, id):
+    try:
+
+        if serializer.NewsCreateSerializer(data = request.data).is_valid():
+            News_object = News_model.objects.get(id = id)
+            News_object.name = request.data['name']
+            News_object.image = request.data['image']
+            News_object.news_type = request.data['news_type']
+            News_object.short_description = request.data['short_description']
+            News_object.publish_date = request.data['publish_date']
+            News_object.description = request.data['description']
+            
+            if request.data['news_type'] == "Announcement": 
+                News_object.author_name = request.data['author_name']
+                News_object.author_image = request.data['author_image']
+            News_object.save()
+            return Response({
+                "status": True, 
+                "message": "Update"
+            }, status=200) 
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to update news details"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def news_list_view(request):
+    try:
+
+        if "search" in request.query_params:
+            All_news_object = News_model.objects.filter(name_icontains = request.data['search'], is_active = False).order_by("-id")
+        else:
+            All_news_object = News_model.objects.filter(is_active = False).order_by("-id")
+        
+        All_news_paginator = Paginator(All_news_object, int(request.query_params.get("page_size")))
+
+        try:
+            All_news_paginator_page = All_news_paginator.page(int(request.query_params.get("page_number")))
+        
+        except EmptyPage:
+            All_news_paginator_page = []
+        
+        All_news_paginator_page_data = serializer.NewsCreateSerializer(All_news_paginator_page, many = True)
+
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": All_news_paginator_page_data.data
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def news_delete_view(request, id):
+    try:
+        News_model.objects.filter(id = id).filter(is_active = True)
+        return Response({
+            "status": True,
+            "message": "Delete"
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+        

@@ -40,6 +40,12 @@ urlpatterns = [
     path("uploadImage", views.admin_upload_image, name="admin_upload_image"), 
 
     # Dashboard related CRUD 
-    path("dashboard", views.dashboard_count_view, name="dashboard_count_view")
-    
+    path("dashboard", views.dashboard_count_view, name="dashboard_count_view"), 
+
+    # News related CRUD
+    path("news/create", views.news_create_view, name="news_create"), 
+    path("news/<int:id>", views.news_details_view, name="news_details"), 
+    path("news/update/<int:id>", views.news_update_view, name="news_update"), 
+    path("news/delete/<int:id>", views.news_delete_view, name="news_delete"), 
+    path("news", views.news_list_view, name="news_list")
 ]

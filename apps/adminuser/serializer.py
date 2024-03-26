@@ -2,6 +2,7 @@ from rest_framework import serializers
 from apps.user.models import Details as User_details 
 from apps.event.models import Details as Event_details 
 from apps.event.models import Gallery as Event_gallery
+from apps.news.models import Details as News_details
 from djstripe.models import Session
 from apps.user.models import Event as User_event
 from apps.donation.models import Details as Donation_details
@@ -195,3 +196,16 @@ class EventSelectionList(serializers.ModelSerializer):
 
 class UserAccountUpdateSerializer(serializers.Serializer): 
     status = serializers.CharField(required = True)
+
+class NewsCreateSerializer(serializers.Serializer): 
+    image = serializers.CharField(required = True)
+    name = serializers.CharField(required = True)
+    news_type = serializers.CharField(required = True)
+    short_description = serializers.CharField(required = True)
+    publish_date = serializers.CharField(required = True)
+    description = serializers.CharField(required = True)
+
+class NewsListFetch(serializers.ModelSerializer): 
+    class Meta:
+        model = News_details
+        fields = ["id", "name", "short_description", "count", "image"]
