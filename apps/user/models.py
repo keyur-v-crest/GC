@@ -51,3 +51,16 @@ class Event(models.Model):
         self.updated_at = timezone.now() 
         super().save(*args, **kwargs) 
 
+class Donation(models.Model): 
+    id = models.AutoField(primary_key = True)
+    user = models.ForeignKey("user.Details", on_delete = models.CASCADE)
+    donation = models.ForeignKey("donation.Details", on_delete = models.CASCADE)
+    transaction_status = models.CharField(max_length = 100, null = True)
+    is_name_visible = models.BooleanField(default = True)
+    payment = models.ForeignKey(WebhookEventTrigger, on_delete = models.CASCADE, related_name="user_donation_payment", null = True)
+    created_at = models.DateTimeField(auto_now_add = True, null = True)
+    updated_at = models.DateTimeField(auto_now = True, null = True)
+
+    def save(self, *args, **kwargs): 
+        self.updated_at = timezone.now() 
+        super().save(*args, **kwargs) 

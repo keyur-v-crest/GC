@@ -6,3 +6,8 @@ class DonationListSerializer(serializers.ModelSerializer):
         model = Donation_details
         fields = ["id", "image", "organizer_image", "organizer_name", "donation_name", "donation_target"]
 
+class DonationPaymentSerializer(serializers.Serializer):
+    donation_id = serializers.IntegerField(required = True)
+    amount = serializers.FloatField(required = True)
+    donation_name = serializers.CharField(required = True)
+    is_name_visible = serializers.BooleanField(required = True)

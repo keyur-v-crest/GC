@@ -6,6 +6,9 @@ from apps.donation.models import Details as Donation_details
 from datetime import datetime
 from django.core.paginator import Paginator, EmptyPage
 from apps.donation import serializer
+from django.conf import settings
+import stripe
+from apps.donation import helpers 
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
@@ -57,6 +60,63 @@ def donation_details_view(request, id):
                 "description": Donation_object.description
             }
         }, status=200) 
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_payment_view(request):
+    try:
+
+        if serializer.DonationPaymentSerializer(data = request.data).is_valid():
+            
+            status = helpers.check_user_donation_entry(request.user.id, request.data['donation_id'], request.data['is_name_visible'])
+            
+            # Configure stripe api key 
+            stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
+
+            # Metadata information 
+            metadata = {
+                "donation_id": request.data['donation_id'], 
+                "type": "donation", 
+                "user_id": request.user.id
+            }
+
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                    line_items=[
+                        {
+                            'price_data': {
+                                'currency': 'usd',
+                                'product_data': {
+                                    'name': request.data['donation_name'],
+                                },
+                                'unit_amount':int(request.data['amount'])*100,
+                            },
+                            'quantity': 1,
+                        },
+                    ],
+                metadata=metadata,
+                mode='payment',
+                success_url='http://localhost:8000/success/',
+                cancel_url='http://localhost:8000/cancel/',
+                client_reference_id = request.user.id
+            )
+
+            return Response({
+                "status": True,
+                "message": "Create", 
+                "payment_url": session.url
+            }, status=200) 
+        else:
+            return Response({
+                "status": False,
+                "message": "Failed to create payment"
+            }, status=200)
     except Exception as e:
         return Response({
             "status": False, 
