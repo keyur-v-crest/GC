@@ -29,6 +29,8 @@ urlpatterns = [
     path("donation/<int:id>", views.donation_details_view, name="donation_details"), 
     path("donation/update/<int:id>", views.donation_update_view, name="donation_details"), 
     path("donation/delete/<int:id>", views.donation_delete_view, name="donation_details"), 
+    path("donation/transaction/<int:id>", views.donation_transaction_view, name="donation_transaction"), 
+    path("donation/transactionList/<int:id>", views.donation_transactionlist_view, name="donation_transction_list"), 
 
     path("event/qrscan", views.event_qrscan_view, name="event_qr_scan"), 
     path("event/ticket/<int:id>", views.event_ticketdetails_view, name="event_ticketdetails_view"), 

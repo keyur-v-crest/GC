@@ -10,6 +10,7 @@ import uuid
 from apps.event.models import Details as Event_details 
 from apps.event.models import Gallery as Event_gallery
 from apps.user.models import Event as User_event_model 
+from apps.user.models import Donation as User_donation_model
 from apps.news.models import Details as News_model
 from apps.donation.models import Details as Donation_model
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -1023,4 +1024,62 @@ def news_delete_view(request, id):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
-        
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_transaction_view(request, id):
+    try:
+
+        Donation_object = Donation_model.objects.get(id = id)
+        Donation_total_earning = Session.objects.filter(metadata__contains={"donation_id": str(id)}, payment_status= "paid").aggregate(Total_sum=Sum("amount_total"))
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data":{
+                "donation": 
+                    {
+                        "donation_image": Donation_object.image, 
+                        "donation_name": Donation_object.donation_name, 
+                        "donation_address": Donation_object.donation_address, 
+                        "organizer_image": Donation_object.organizer_image
+                    }, 
+                "total_amount": Donation_total_earning
+            }
+        }, status = 200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_transactionlist_view(request, id):
+    try:
+
+        page_number = int(request.query_params.get("page_number"))
+        page_size = int(request.query_params.get("page_size"))
+
+        Donation_transaction_list = User_donation_model.objects.filter(donation_id = id, transaction_status="Complete").order_by("-id")
+        Donation_transaction_list_paginator = Paginator(Donation_transaction_list, page_size)
+
+        try:
+            Donation_transaction_list_paginator_page = Donation_transaction_list_paginator.page(page_number)
+        except EmptyPage:
+            Donation_transaction_list_paginator_page = []
+
+        Donation_transaction_list_paginator_page_data = serializer.DonationTransactionListSerializer(Donation_transaction_list_paginator_page, many = True)
+
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": Donation_transaction_list_paginator_page_data.data
+        }, status=200)
+    except Exception as e:
+        print(e)
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status = 500)

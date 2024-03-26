@@ -5,6 +5,7 @@ from apps.event.models import Gallery as Event_gallery
 from apps.news.models import Details as News_details
 from djstripe.models import Session
 from apps.user.models import Event as User_event
+from apps.user.models import Donation as User_donation
 from apps.donation.models import Details as Donation_details
 from djstripe.models import WebhookEventTrigger
 import json 
@@ -209,3 +210,32 @@ class NewsListFetch(serializers.ModelSerializer):
     class Meta:
         model = News_details
         fields = ["id", "name", "short_description", "count", "image"]
+
+class DonationTransactionListSerializer(serializers.ModelSerializer):
+    user_info = serializers.SerializerMethodField()
+    transaction_info = serializers.SerializerMethodField()
+    class Meta:
+        model = User_donation
+        fields = ["id", "user_info", "transaction_info"]
+
+    def get_user_info(self, object): 
+        try:
+            return {
+                "username": object.user.first_name,
+                "profile_image": object.user.profile_image
+            }
+        except Exception as e:
+            return {}
+    
+    def get_transaction_info(self, object):
+        try:
+            Transaction_data = object.payment.body
+            Transaction_data = json.loads(Transaction_data)
+            return {
+                "transaction_amount": Transaction_data['data']['object']['amount_total'], 
+                "payment_method": Transaction_data['data']['object']['payment_method_types']
+            }
+        except Exception as e:
+            return {}
+
+
