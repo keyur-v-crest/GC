@@ -36,3 +36,29 @@ def donation_list_view(request):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_details_view(request, id):
+    try:
+
+        Donation_object = Donation_details.objects.get(id = id)
+        
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data":{
+                "image": Donation_object.image,
+                "donation_name": Donation_object.donation_name, 
+                "organizer_name": Donation_object.organizer_name, 
+                "organizer_image": Donation_object.organizer_image,
+                "organizer_contact": Donation_object.organizer_contact, 
+                "description": Donation_object.description
+            }
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
