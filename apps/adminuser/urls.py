@@ -14,11 +14,17 @@ urlpatterns = [
     path("event", views.event_list_view, name="event_list"), 
     path("event/<int:id>", views.event_details_view, name="event_details"), 
     path("event/update/<int:id>", views.event_update_view, name="event_update"),
-     
+
     # EventGallery related CRUD
     path("event/gallery/<int:id>", views.event_gallery_view, name="event_gallery"), 
     path("event/gallery/delete/<int:id>", views.event_gallerydelete_view, name="event_gallery_delete"), 
     path("event/gallery/upload/<int:id>", views.event_galleryupload_view, name="event_gallery_upload"), 
+
+    # Donation related CRUD
+    path("donation/create", views.donation_create_view, name="donation_create"), 
+    path("donation", views.donation_list_view, name="donation_list"), 
+    path("donation/<int:id>", views.donation_details_view, name="donation_details"), 
+    path("donation/update/<int:id>", views.donation_update_view, name="donation_details"), 
 
     path("event/qrscan", views.event_qrscan_view, name="event_qr_scan"), 
     path("event/ticket/<int:id>", views.event_ticketdetails_view, name="event_ticketdetails_view"), 
@@ -29,11 +35,6 @@ urlpatterns = [
     # Transaction view
     path("transaction", views.transaction_view, name="transaction_view"), 
 
-    # Donation related route
-    path("donation", views.donation_list_view, name="donation_list"), 
-    path("donation/create", views.donation_create_view, name="donation_create"), 
-    path("donation/<int:id>", views.donation_details_view, name="donation_details"), 
-    path("donation/update/<int:id>", views.donation_update_view, name="donation_details"), 
 
     path("uploadImage", views.admin_upload_image, name="admin_upload_image")
     

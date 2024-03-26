@@ -14,6 +14,7 @@ class Details(models.Model):
     description = models.CharField(max_length = 1000, default = None, null = True)
     organizer_name = models.CharField(max_length = 1000, default = None, null = True)
     organizer_contact = models.CharField(max_length = 1000, default = None, null = True)
+    organizer_image = models.CharField(max_length = 1000, default = None, null = True)
     category = models.ForeignKey("category.Details", on_delete = models.CASCADE, null = True)
     created_at = models.DateTimeField(auto_now_add = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, null = True)

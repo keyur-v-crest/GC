@@ -170,10 +170,11 @@ class CreateDonationSerializer(serializers.Serializer):
     organizer_name = serializers.CharField(required = True)
     organizer_contact = serializers.CharField(required  = True)
     
+
 class DonationListDataFetch(serializers.ModelSerializer): 
     class Meta:
         model = Donation_details 
-        fields = ["id", "donation_name", "image", "image", "location", "donation_target", "organizer_name", "created_at", "updated_at"]
+        fields = ["id", "donation_name", "image", "image", "donation_address", "donation_target", "organizer_name", "created_at", "updated_at", "organizer_image"]
 
 class UploadImageSerializer(serializers.Serializer):
     image = serializers.FileField(required = True)

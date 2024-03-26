@@ -181,7 +181,7 @@ def event_create_view(requets):
             'message': "Network request failed"
         }, status=400)
     
-@api_view(["POST"])
+@api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
 def event_list_view(request):
@@ -194,8 +194,15 @@ def event_list_view(request):
             else:
                 All_event = Event_details.objects.all().order_by("-id") 
             
-            All_event_paginator = Paginator(All_event, request.data['page_size'])
-            All_event_paginator_page = All_event_paginator.get_page(request.data['page_number'])
+            All_event_paginator = Paginator(All_event, request.query_params.get("page_size"))
+
+            try:
+                All_event_paginator_page = All_event_paginator.page(int(request.query_params.get("page_number")))
+            except PageNotAnInteger:
+                All_event_paginator_page = All_event_paginator.page(1)
+            except EmptyPage: 
+                All_event_paginator_page = []
+
             All_event_paginator_page = serializer.SerializerFetchEventList(All_event_paginator_page, many = True)
 
             return Response({
@@ -563,17 +570,14 @@ def donation_create_view(request):
     try:
 
         if serializer.CreateDonationSerializer(data = request.data).is_valid():
-            
-            # Check donation name 
             check_donation_name = Donation_model.objects.filter(donation_name = request.data['donation_name']).count()
-
             if check_donation_name > 0:
                 return Response({
                     "status": False, 
                     "message": "Already create donation with this name"
                 }, status=400)
             else:
-                New_donation = Donation_model.objects.create(
+                Donation_model.objects.create(
                     image = request.data['image'], 
                     donation_name = request.data['donation_name'], 
                     donation_target = request.data['donation_target'], 
@@ -583,6 +587,7 @@ def donation_create_view(request):
                     description = request.data['description'], 
                     organizer_name = request.data['organizer_name'], 
                     organizer_contact = request.data['organizer_contact'], 
+                    organizer_image = request.data['organizer_image'], 
                     donation_city = request.data['donation_city'], 
                     donation_state = request.data['donation_state'] , 
                     donation_create_by_id = request.user.id
@@ -623,6 +628,7 @@ def donation_details_view(request, id):
                 "description": Donation_object.description, 
                 "organizer_name": Donation_object.organizer_name, 
                 "organizer_contact": Donation_object.organizer_contact, 
+                "organizer_image": Donation_object.organizer_image, 
                 "donation_city": Donation_object.donation_city, 
                 "donation_state": Donation_object.donation_state
             }
@@ -638,10 +644,8 @@ def donation_details_view(request, id):
 @permission_classes([CheckUserAuthentication])
 def donation_update_view(request, id):
     try:
-
         if serializer.CreateDonationSerializer(data = request.data).is_valid():
             check_donation_name = Donation_model.objects.filter(donation_name = request.data['donation_name']).exclude(id = id).count()
-
             if check_donation_name > 0:
                 return Response({
                     "status": False, 
@@ -660,6 +664,7 @@ def donation_update_view(request, id):
                 Donation_object.organizer_contact = request.data['organizer_contact']
                 Donation_object.donation_city = request.data['donation_city']
                 Donation_object.donation_state = request.data['donation_state']
+                Donation_object.organizer_image = request.data['organizer_image']
                 Donation_object.save()
 
                 return Response({
@@ -683,9 +688,20 @@ def donation_update_view(request, id):
 @permission_classes([CheckUserAuthentication])
 def donation_list_view(request): 
     try:
-        Donation_data = Donation_model.objects.all().order_by("-id")
-        Donation_data_paginator = Paginator(Donation_data, int(request.query_params.get("page_number")))
-        Donation_data_paginator_page = Donation_data_paginator.get_page(int(request.query_params.get("page_size")))
+        if "search" in request.query_params:
+            Donation_data = Donation_model.objects.filter(donation_name__icontains = request.query_params.get("search")).order_by("-id")
+        else:
+            Donation_data = Donation_model.objects.all().order_by("-id")
+        
+        Donation_data_paginator = Paginator(Donation_data, int(request.query_params.get("page_size")))
+
+        try:
+            Donation_data_paginator_page = Donation_data_paginator.page(int(request.query_params.get("page_number")))
+        except PageNotAnInteger:
+            Donation_data_paginator_page = Donation_data_paginator.page(1)
+        except EmptyPage:
+            Donation_data_paginator_page = []
+
         Donation_data_paginator_page_data = serializer.DonationListDataFetch(Donation_data_paginator_page, many = True)
         return Response({
             "status": True, 
