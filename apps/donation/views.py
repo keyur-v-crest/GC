@@ -57,7 +57,8 @@ def donation_details_view(request, id):
                 "organizer_name": Donation_object.organizer_name, 
                 "organizer_image": Donation_object.organizer_image,
                 "organizer_contact": Donation_object.organizer_contact, 
-                "description": Donation_object.description
+                "description": Donation_object.description, 
+                "donation": helpers.get_donation_member_information(id)
             }
         }, status=200) 
     except Exception as e:
