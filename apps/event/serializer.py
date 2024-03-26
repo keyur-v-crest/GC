@@ -77,3 +77,9 @@ class EventTicketDataSerializer(serializers.ModelSerializer):
     class Meta: 
         model = User_event
         fields = ["id", "event", "ticket_number"]
+
+class EventGalleryListSerializer(serializers.ModelSerializer): 
+    event = EventDetails(read_only = True)
+    class Meta:
+        model = User_event
+        fields = ["id", "event"]

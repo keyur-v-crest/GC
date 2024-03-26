@@ -276,7 +276,30 @@ def event_history_view(request):
             'status': False, 
             'message': "Network request failed"
         }, status=500)
-    
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_recentgallery_view(request):
+    try:
+
+        today_date = datetime.today() 
+        seven_days_from_now = datetime.now().date() + timedelta(days=7)
+
+        User_event_gallery = User_event_model.objects.filter(user_id = request.user.id, transaction_status = "Complete", event__event_date__range=[today_date, seven_days_from_now])
+        User_event_gallery = serializer.EventGalleryListSerializer(User_event_gallery, many = True)
+
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": User_event_gallery.data
+        }, status=200)
+    except Exception as e:
+        print(e)
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])
