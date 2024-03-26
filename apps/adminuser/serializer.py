@@ -39,11 +39,12 @@ class SerializerCreateEvent(serializers.Serializer):
     event_address_longitude = serializers.CharField(required = True)
     event_image = serializers.CharField(required = True)
     number_of_seat = serializers.IntegerField(required = True)
-    organizer_name = serializers.CharField(required = True)
-    organizer_contact_number = serializers.CharField(required = True)
     is_vip_seat = serializers.BooleanField(required = True)
     event_city = serializers.CharField(required = True)
     event_state = serializers.CharField(required = True)
+    organizer_name = serializers.CharField(required = True)
+    organizer_contact_number = serializers.CharField(required = True)
+    organizer_image = serializers.CharField(required = True)
 
 class SerializerUpdateEvent(serializers.Serializer): 
     id = serializers.IntegerField(required = True)

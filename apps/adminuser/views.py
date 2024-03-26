@@ -144,8 +144,7 @@ def event_create_view(requets):
     try:
 
         if serializer.SerializerCreateEvent(data = requets.data).is_valid():
-            # Create new event 
-            New_event = Event_details.objects.create(
+            Event_details.objects.create(
                 event_name = requets.data['event_name'], 
                 event_description = requets.data['event_description'], 
                 category_id = requets.data['category'], 
@@ -159,12 +158,13 @@ def event_create_view(requets):
                 event_address_longitude = requets.data['event_address_longitude'], 
                 event_image = requets.data['event_image'], 
                 number_of_seat = requets.data['number_of_seat'], 
-                organizer_name = requets.data['organizer_name'], 
-                organizer_contact_number = requets.data['organizer_contact_number'], 
                 event_create_by_id = requets.user.id, 
                 is_vip_seat = requets.data['is_vip_seat'], 
                 event_address_city = requets.data['event_city'], 
-                event_address_state = requets.data['event_state']
+                event_address_state = requets.data['event_state'], 
+                organizer_name = requets.data['organizer_name'], 
+                organizer_contact_number = requets.data['organizer_contact_number'],
+                organizer_image = requets.data['organizer_image'] 
             )
             return Response({
                 'status': True, 
@@ -188,9 +188,12 @@ def event_list_view(request):
     try:
 
         if serializer.SerializerPaginator(data = request.data).is_valid():
-
-            # Event details 
-            All_event = Event_details.objects.all().order_by("-id") 
+            
+            if "search" in request.query_params:
+                All_event = Event_details.objects.filter(event_name__icontains=request.query_params.get("search")).order_by("-id") 
+            else:
+                All_event = Event_details.objects.all().order_by("-id") 
+            
             All_event_paginator = Paginator(All_event, request.data['page_size'])
             All_event_paginator_page = All_event_paginator.get_page(request.data['page_number'])
             All_event_paginator_page = serializer.SerializerFetchEventList(All_event_paginator_page, many = True)
@@ -244,6 +247,7 @@ def event_details_view(request, id):
                 "number_of_seat": Particular_event_details.number_of_seat, 
                 "organizer_name": Particular_event_details.organizer_name, 
                 "organizer_contact_number": Particular_event_details.organizer_contact_number, 
+                "organizer_image": Particular_event_details.organizer_image, 
                 "price": Particular_event_details.price, 
                 "total_book_seat": int(Particular_event_details.number_of_seat) - int(Total_book_seat), 
                 "total_earning": Total_event_eaning['total_earning'], 
@@ -281,6 +285,7 @@ def event_update_view(request, id):
             Particular_event_object.event_image = request.data['event_image'] 
             Particular_event_object.organizer_name = request.data['organizer_name']
             Particular_event_object.organizer_contact_number = request.data['organizer_contact_number']
+            Particular_event_object.organizer_image = request.data['organizer_image']
             Particular_event_object.number_of_seat = request.data['number_of_seat']
             Particular_event_object.is_vip_seat = request.data['is_vip_seat']
             Particular_event_object.event_address_city = request.data['event_city']

@@ -22,6 +22,7 @@ class Details(models.Model):
     number_of_seat = models.IntegerField(default = 0)
     organizer_name = models.CharField(max_length = 500, default = None)
     organizer_contact_number = models.CharField(max_length = 100, default = None)
+    organizer_image = models.CharField(max_length = 1000, default = None, null = True)
     event_delete = models.BooleanField(default = False) 
     event_create_by = models.ForeignKey(User_details, on_delete=models.CASCADE, null = True)
     is_vip_seat = models.BooleanField(default = False)
