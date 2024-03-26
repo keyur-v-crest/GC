@@ -162,8 +162,9 @@ class CreateDonationSerializer(serializers.Serializer):
     image = serializers.CharField(required = True)
     donation_start_date = serializers.CharField(required = True)
     donation_end_date = serializers.CharField(required = True)
-    location = serializers.CharField(required = True)
     donation_address = serializers.CharField(required = True)
+    donation_city = serializers.CharField(required = True)
+    donation_state = serializers.CharField(required = True)
     description = serializers.CharField(required = True)
     organizer_name = serializers.CharField(required = True)
     organizer_contact = serializers.CharField(required  = True)
@@ -184,3 +185,9 @@ class EventGalleryListFetch(serializers.ModelSerializer):
 
 class EventGalleryUploadSerializer(serializers.Serializer):
     images = serializers.ListField(required = True)
+
+class EventSelectionList(serializers.ModelSerializer):
+    class Meta:
+        model = Event_details
+        fields = ['id', "event_name"]
+    

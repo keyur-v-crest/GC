@@ -11,7 +11,7 @@ from apps.event.models import Details as Event_details
 from apps.event.models import Gallery as Event_gallery
 from apps.user.models import Event as User_event_model 
 from apps.donation.models import Details as Donation_model
-from django.core.paginator import Paginator 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from djstripe.models import Session
 import uuid
 from apps.adminuser.models import Image
@@ -297,22 +297,49 @@ def event_update_view(request, id):
                 'message': "Failed"
             }, status=400)
     except Exception as e:
-
         return Response({
             'status': False, 
             'message': "Network request failed"
         }, status=400) 
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_selection_view(request):
+    try:
+
+        Event_selection_list = Event_details.objects.filter(event_delete = False).order_by("-id")
+        Event_selection_list = serializer.EventSelectionList(Event_selection_list, many = True)
+
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": Event_selection_list.data
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=400) 
+        
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
 def event_gallery_view(request, id):
     try:
-
+        page_number = int(request.query_params.get("page_number", 1))
+        page_size = int(request.query_params.get("page_size", 10))
         Particular_event_gallery_list = Event_gallery.objects.filter(event_id = id, delete = False).order_by("-id")
         Particular_event_gallery_list_paginator = Paginator(Particular_event_gallery_list, int(request.query_params.get("page_size")))
-        Particular_event_gallery_list_paginator_page = Particular_event_gallery_list_paginator.get_page(int(request.query_params.get("page_number")))
-        Particular_event_gallery_list_paginator_page_data = serializer.EventGalleryListFetch(Particular_event_gallery_list_paginator_page, many = True)
+        try:
+            Particular_event_gallery_list_paginator_page = Particular_event_gallery_list_paginator.page(page_number)
+        except PageNotAnInteger:
+            Particular_event_gallery_list_paginator_page = Particular_event_gallery_list_paginator.page(1)
+        except EmptyPage:
+            Particular_event_gallery_list_paginator_page = []
+
+        Particular_event_gallery_list_paginator_page_data = serializer.EventGalleryListFetch(Particular_event_gallery_list_paginator_page, many=True)
         return Response({
             "status": True, 
             "message": "Fetch", 
@@ -547,11 +574,12 @@ def donation_create_view(request):
                     donation_target = request.data['donation_target'], 
                     donation_start_date = request.data['donation_start_date'], 
                     donation_end_date = request.data['donation_end_date'], 
-                    location = request.data['location'], 
                     donation_address = request.data['donation_address'], 
                     description = request.data['description'], 
                     organizer_name = request.data['organizer_name'], 
                     organizer_contact = request.data['organizer_contact'], 
+                    donation_city = request.data['donation_city'], 
+                    donation_state = request.data['donation_state'] , 
                     donation_create_by_id = request.user.id
                 )
                 return Response({
@@ -568,6 +596,82 @@ def donation_create_view(request):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_details_view(request, id):
+    try:
+
+        Donation_object = Donation_model.objects.get(id = id)
+        return Response({
+            "status": True,
+            "message": "Fetch", 
+            "data": {
+                "donation_name": Donation_object.donation_name, 
+                "category": Donation_object.category_id, 
+                "donation_target": Donation_object.donation_target, 
+                "image": Donation_object.image, 
+                "donation_start_date": Donation_object.donation_start_date, 
+                "donation_end_date": Donation_object.donation_end_date, 
+                "donation_address": Donation_object.donation_address, 
+                "description": Donation_object.description, 
+                "organizer_name": Donation_object.organizer_name, 
+                "organizer_contact": Donation_object.organizer_contact, 
+                "donation_city": Donation_object.donation_city, 
+                "donation_state": Donation_object.donation_state
+            }
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_update_view(request, id):
+    try:
+
+        if serializer.CreateDonationSerializer(data = request.data).is_valid():
+            check_donation_name = Donation_model.objects.filter(donation_name = request.data['donation_name']).exclude(id = id).count()
+
+            if check_donation_name > 0:
+                return Response({
+                    "status": False, 
+                    "message": "Already create donation with this name"
+                }, status=400)
+            else:
+                Donation_object = Donation_model.objects.get(id = id)
+                Donation_object.donation_name = request.data['donation_name']
+                Donation_object.category_id = request.data['category']
+                Donation_object.donation_target = request.data['donation_target']
+                Donation_object.image = request.data['image'] 
+                Donation_object.donation_start_date = request.data['donation_start_date']
+                Donation_object.donation_end_date = request.data['donation_end_date']
+                Donation_object.donation_address = request.data['donation_address']
+                Donation_object.organizer_name = request.data['organizer_name']
+                Donation_object.organizer_contact = request.data['organizer_contact']
+                Donation_object.donation_city = request.data['donation_city']
+                Donation_object.donation_state = request.data['donation_state']
+                Donation_object.save()
+
+                return Response({
+                    "status": True,
+                    "message": "Update"
+                }, status=200)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to update donation details"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
     
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
@@ -589,21 +693,6 @@ def donation_list_view(request):
             "message": "Network request failed"
         }, status=500)
     
-@api_view(["POST"])
-@authentication_classes([JWTAuthentication])
-@permission_classes([CheckUserAuthentication])
-def donation_update_view(request, id): 
-    try:
-        return Response({
-            "status": True, 
-            "message": "Update"
-        }, status=200) 
-    except Exception as e:
-        return Response({
-            "status": False, 
-            "message": "Network request failed"
-        }, status=500)
-
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
