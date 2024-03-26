@@ -5,8 +5,10 @@ urlpatterns = [
     path("login", views.RouteAdminLogin, name="super-admin-login"), 
     path("check", views.admin_check_view, name="Admin_token_check"), 
 
-    # User related route 
+    # User related CRUD 
     path("user", views.user_list_view, name="user_list_view"),  
+    path("verifiedUser", views.user_verifiedlist_view, name="user_verified_view"), 
+    path("user/<int:id>/account", views.user_accountupdate_view, name="user_verified_view"), 
     path("user/<int:id>", views.user_details_view, name="user_details_view"), 
 
     # Event related CRUD
@@ -31,11 +33,8 @@ urlpatterns = [
     path("event/transaction/<int:id>", views.event_transaction_view, name="event_transaction_view"), 
     path("event/selection", views.event_selection_view, name = "event_selection"), 
 
-
     # Transaction view
     path("transaction", views.transaction_view, name="transaction_view"), 
-
-
     path("uploadImage", views.admin_upload_image, name="admin_upload_image")
     
 ]

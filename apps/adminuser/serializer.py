@@ -106,7 +106,7 @@ class TransactionListDataFetch(serializers.ModelSerializer):
 class UserListDataFetch(serializers.ModelSerializer): 
     class Meta:
         model = User_details
-        fields = ["id", "profile_image", "profession", "first_name", "last_name"]
+        fields = ["id", "profile_image", "profession", "first_name", "last_name", "account_status", "created_at", "updated_at"]
 
 class EventQrScanSerializer(serializers.Serializer): 
     ticket_number = serializers.CharField(required = True)
@@ -192,4 +192,6 @@ class EventSelectionList(serializers.ModelSerializer):
     class Meta:
         model = Event_details
         fields = ['id', "event_name"]
-    
+
+class UserAccountUpdateSerializer(serializers.Serializer): 
+    status = serializers.CharField(required = True)

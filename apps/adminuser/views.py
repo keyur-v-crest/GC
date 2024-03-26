@@ -450,16 +450,73 @@ def transaction_view(request):
 @permission_classes([CheckUserAuthentication])
 def user_list_view(request):
     try:
-
-        User_list = User_details.objects.filter(is_admin = False).order_by("-id")
+        if "search" in request.query_params:
+            User_list = User_details.objects.filter(is_admin = False, first_name__icontains = request.query_params.get("search")).order_by("-id")
+        else:
+            User_list = User_details.objects.filter(is_admin = False).order_by("-id")
         User_list_paginator = Paginator(User_list, int(request.query_params.get("page_size")))
-        User_list_paginator_page = User_list_paginator.get_page(int(request.query_params.get("page_number")))
+        try:
+            User_list_paginator_page = User_list_paginator.page(int(request.query_params.get("page_number")))
+        except EmptyPage:
+            User_list_paginator_page = []
+
         User_list_paginator_page_data = serializer.UserListDataFetch(User_list_paginator_page, many = True)
         return Response({
             "status": True, 
             "message": "Fetch", 
             "data": User_list_paginator_page_data.data
         }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_accountupdate_view(request, id):
+    try:
+        if serializer.UserAccountUpdateSerializer(data = request.data).is_valid():
+            User_details.objects.filter(id = id).update(account_status = request.data['status'])
+            return Response({
+                "status": True,
+                "message": "Update"
+            }, status=200) 
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to update account"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_verifiedlist_view(request):
+    try:
+
+        if "search" in request.query_params:
+            User_list = User_details.objects.filter(is_admin = False, first_name__icontains = request.query_params.get("search"), account_status = "Approved").order_by("-id")
+        else:
+            User_list = User_details.objects.filter(is_admin = False, account_status = "Approved").order_by("-id")
+        User_list_paginator = Paginator(User_list, int(request.query_params.get("page_size")))
+        try:
+            User_list_paginator_page = User_list_paginator.page(int(request.query_params.get("page_number")))
+        except EmptyPage:
+            User_list_paginator_page = []
+
+        User_list_paginator_page_data = serializer.UserListDataFetch(User_list_paginator_page, many = True)
+        return Response({
+            "status":True,
+            "message": "Fetch", 
+            "data": User_list_paginator_page_data.data
+        }, status=200) 
     except Exception as e:
         return Response({
             "status": False, 
