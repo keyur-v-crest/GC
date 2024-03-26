@@ -8,7 +8,11 @@ urlpatterns = [
     path("payment", views.event_payment_view, name="event_payment_view"),
     path("ticket/<int:id>", views.event_ticketdetails_view, name="event_ticketdetails"), 
     path("bookingHistory", views.event_history_view, name="event_history"), 
-    path("recentGallery", views.event_recentgallery_view, name="event_recentgallery"), 
+
+    # Event gallery CRUD
+    path("gallery/recent", views.event_recentgallery_view, name="event_recentgallery"), 
+    path("gallery/others", views.event_otheralubms_view, name="event_otheralumbmsview"),  
+    path("gallery/<int:id>", views.event_imagefile_view, name="event_imagefile"), 
     
     path("calendar", views.event_date_view, name="event_datewise"), 
     path("particularDate", views.event_particulardate_view, name="event_particulardate"), 

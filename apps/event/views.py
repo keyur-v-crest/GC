@@ -13,6 +13,7 @@ from django.db.models import Count
 import stripe
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import json
+from apps.event.models import Gallery as Event_gallery_model
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
@@ -286,7 +287,7 @@ def event_recentgallery_view(request):
         today_date = datetime.today() 
         seven_days_from_now = datetime.now().date() + timedelta(days=7)
 
-        User_event_gallery = User_event_model.objects.filter(user_id = request.user.id, transaction_status = "Complete", event__event_date__range=[today_date, seven_days_from_now])
+        User_event_gallery = User_event_model.objects.filter(user_id = request.user.id, status = "Complete", event__event_date__range=[today_date, seven_days_from_now])
         User_event_gallery = serializer.EventGalleryListSerializer(User_event_gallery, many = True)
 
         return Response({
@@ -295,11 +296,70 @@ def event_recentgallery_view(request):
             "data": User_event_gallery.data
         }, status=200)
     except Exception as e:
-        print(e)
         return Response({
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+    
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_otheralubms_view(request):
+    try:
+
+        page_number = int(request.query_params.get("page_number"))
+        page_size = int(request.query_params.get("page_size")) 
+
+        User_event_gallery = User_event_model.objects.filter(user_id = request.user.id, status="Complete").order_by("-id")
+        User_event_gallery_paginator = Paginator(User_event_gallery, page_size)
+
+        try:
+            User_event_gallery_paginator_page = User_event_gallery_paginator.page(page_number)
+        except EmptyPage:
+            User_event_gallery_paginator_page = User_event_gallery_paginator.page(0)
+        
+        User_event_gallery_paginator_page_data = serializer.EventGalleryListSerializer(User_event_gallery_paginator_page, many = True)
+
+        return Response({
+            "status": True,
+            "message": "Fetch", 
+            "data": User_event_gallery_paginator_page_data.data
+        }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_imagefile_view(request, id):
+    try:
+
+        page_number = int(request.query_params.get("page_number"))
+        page_size = int(request.query_params.get("page_size"))
+
+        Event_images = Event_gallery_model.objects.filter(event_id = id).order_by("-id")
+        Event_images_paginator = Paginator(Event_images, page_size)
+        
+        try: 
+            Event_images_paginator_page = Event_images_paginator.page(page_number)
+        except EmptyPage:
+            Event_images_paginator_page = []
+        
+        Event_images_paginator_page_data = serializer.EventImageSerializer(Event_images_paginator_page, many = True)
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": Event_images_paginator_page_data.data
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
 
 @api_view(['GET'])
 @authentication_classes([JWTAuthentication])

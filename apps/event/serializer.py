@@ -83,3 +83,8 @@ class EventGalleryListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User_event
         fields = ["id", "event"]
+
+class EventImageSerializer(serializers.ModelSerializer): 
+    class Meta:
+        model = Gallery 
+        fields = ["id", "link", "type"]
