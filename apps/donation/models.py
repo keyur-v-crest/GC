@@ -19,7 +19,7 @@ class Details(models.Model):
     created_at = models.DateTimeField(auto_now_add = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, null = True)
     donation_create_by = models.ForeignKey("user.Details", on_delete = models.CASCADE, null = True, related_name = "donation_create_user")
-
+    is_active = models.BooleanField(default = False)
     def save(self, *args, **kwargs): 
         self.updated_at = timezone.now() 
         super().save(*args, **kwargs) 

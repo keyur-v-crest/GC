@@ -190,9 +190,9 @@ def event_list_view(request):
         if serializer.SerializerPaginator(data = request.data).is_valid():
             
             if "search" in request.query_params:
-                All_event = Event_details.objects.filter(event_name__icontains=request.query_params.get("search")).order_by("-id") 
+                All_event = Event_details.objects.filter(event_name__icontains=request.query_params.get("search"), event_delete = False).order_by("-id") 
             else:
-                All_event = Event_details.objects.all().order_by("-id") 
+                All_event = Event_details.objects.filter(event_delete = False).order_by("-id") 
             
             All_event_paginator = Paginator(All_event, request.query_params.get("page_size"))
 
@@ -226,7 +226,6 @@ def event_list_view(request):
 @permission_classes([CheckUserAuthentication])
 def event_details_view(request, id): 
     try:
-
         # Fetch particular event details 
         Particular_event_details = Event_details.objects.get(id = id)
 
@@ -259,7 +258,8 @@ def event_details_view(request, id):
                 "total_book_seat": int(Particular_event_details.number_of_seat) - int(Total_book_seat), 
                 "total_earning": Total_event_eaning['total_earning'], 
                 "event_city": Particular_event_details.event_address_city, 
-                "event_state": Particular_event_details.event_address_state
+                "event_state": Particular_event_details.event_address_state, 
+                "event_delete": Particular_event_details.event_delete
             }
         }, status=200)
         
@@ -313,6 +313,23 @@ def event_update_view(request, id):
             'status': False, 
             'message': "Network request failed"
         }, status=400) 
+    
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_delete_view(request, id): 
+    try:
+        Event_details.objects.filter(id = id).update(event_delet = True)
+        return Response({
+            "status": True, 
+            "message": "Delete"
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=400) 
+    
     
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
@@ -746,9 +763,9 @@ def donation_update_view(request, id):
 def donation_list_view(request): 
     try:
         if "search" in request.query_params:
-            Donation_data = Donation_model.objects.filter(donation_name__icontains = request.query_params.get("search")).order_by("-id")
+            Donation_data = Donation_model.objects.filter(donation_name__icontains = request.query_params.get("search"), is_active = False).order_by("-id")
         else:
-            Donation_data = Donation_model.objects.all().order_by("-id")
+            Donation_data = Donation_model.objects.filter(is_active = False).order_by("-id")
         
         Donation_data_paginator = Paginator(Donation_data, int(request.query_params.get("page_size")))
 
@@ -770,6 +787,23 @@ def donation_list_view(request):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+    
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_delete_view(request, id): 
+    try:
+        Donation_model.objects.filter(id = id).update(is_active = True)
+        return Response({
+            "status": True, 
+            "message": "Delete"
+        }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
     
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])

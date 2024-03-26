@@ -16,6 +16,7 @@ urlpatterns = [
     path("event", views.event_list_view, name="event_list"), 
     path("event/<int:id>", views.event_details_view, name="event_details"), 
     path("event/update/<int:id>", views.event_update_view, name="event_update"),
+    path("event/delete/<int:id>", views.event_delete_view, name="event_delete"), 
 
     # EventGallery related CRUD
     path("event/gallery/<int:id>", views.event_gallery_view, name="event_gallery"), 
@@ -27,6 +28,7 @@ urlpatterns = [
     path("donation", views.donation_list_view, name="donation_list"), 
     path("donation/<int:id>", views.donation_details_view, name="donation_details"), 
     path("donation/update/<int:id>", views.donation_update_view, name="donation_details"), 
+    path("donation/delete/<int:id>", views.donation_delete_view, name="donation_details"), 
 
     path("event/qrscan", views.event_qrscan_view, name="event_qr_scan"), 
     path("event/ticket/<int:id>", views.event_ticketdetails_view, name="event_ticketdetails_view"), 
