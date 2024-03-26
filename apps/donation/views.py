@@ -35,6 +35,7 @@ def donation_list_view(request):
             "data": Donation_list_paginator_page_data.data
         }, status=200)
     except Exception as e:
+        print(e)
         return Response({
             "status": False, 
             "message": "Network request failed"

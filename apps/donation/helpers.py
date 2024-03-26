@@ -1,4 +1,6 @@
 from apps.user.models import Donation as User_donation_model
+from apps.donation.models import Details as Donation_details
+from djstripe.models import Session
 
 def check_user_donation_entry(user_id, donation_id, name_visible): 
     """
@@ -7,8 +9,8 @@ def check_user_donation_entry(user_id, donation_id, name_visible):
     """
     try:
         
+        
         User_donation_check = User_donation_model.objects.filter(user_id = user_id, donation_id = donation_id, transaction_status = "Pending").count()
-
         if User_donation_check == 0:
             User_donation_model.objects.create(
                 user_id = user_id, 
