@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework_simplejwt.authentication import JWTAuthentication 
 from apps.user.helpers import CheckUserAuthentication
 from rest_framework.response import Response
-from datetime import datetime
+from datetime import datetime, timedelta
 from apps.event.models import Details as Event_details 
 from apps.user.models import Event as User_event_model
 from apps.event.models import Gallery as Event_gallery_model
@@ -11,32 +11,69 @@ from django.conf import settings
 from apps.event import helpers as event_helpers
 from django.db.models import Count
 import stripe
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import json
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def event_list_view(request): 
+def event_upcominglist_view(request): 
     try:
-
-        # Curernt date 
         today_date = datetime.today() 
+        seven_days_from_now = datetime.now().date() + timedelta(days=7)
+        page_number = int(request.query_params.get("page_number"))
+        page_size = int(request.query_params.get("page_size"))
 
         # All latest event data information 
-        Event_information = Event_details.objects.filter(publish_date__gte=today_date)
-        Event_information = serializer.SerializerEventDetails(Event_information, many = True)
+        Event_information = Event_details.objects.filter(publish_date__range=[today_date, seven_days_from_now])
+        Event_information_paginator = Paginator(Event_information, page_size)
+
+        try:
+            Event_information_paginator_page = Event_information_paginator.page(page_number)
+        except EmptyPage:
+            Event_information_paginator_page = []
+        Event_information_paginator_page_data = serializer.SerializerEventDetails(Event_information_paginator_page, many = True)
 
         return Response({
             'status': True, 
             'message': 'Fetch', 
-            'data': Event_information.data
+            'data': Event_information_paginator_page_data.data
         }, status=200)
     except Exception as e:
         return Response({
             'status': False, 
             'message': "Network request failed"
         }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_featuredlist_view(request):
+    try:
+        seven_days_from_now = datetime.now().date() + timedelta(days=7)
+        page_number = int(request.query_params.get("page_number"))
+        page_size = int(request.query_params.get("page_size"))
+
+        Event_information = Event_details.objects.filter(publish_date__gte = seven_days_from_now)
+        Event_information_paginator = Paginator(Event_information, page_size)
+
+        try:
+            Event_information_paginator_page = Event_information_paginator.page(page_number)
+        except EmptyPage:
+            Event_information_paginator_page = []
+        Event_information_paginator_page_data = serializer.SerializerEventDetails(Event_information_paginator_page, many = True)
+
+        return Response({
+            "status": True,
+            "message": "Fetch", 
+            "data": Event_information_paginator_page_data.data
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+
 
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
@@ -321,3 +358,5 @@ def event_ticketlist_view(request):
             'status': False, 
             'message': "Network request failed"
         }, status=500)
+    
+
