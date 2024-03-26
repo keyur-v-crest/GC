@@ -847,3 +847,32 @@ def admin_upload_image(request):
             "message": "Network request failed"
         }, status=500)
     
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def dashboard_count_view(request):
+    try:
+
+        # Total event count
+        Total_event = Event_details.objects.filter(event_delete = False).count()
+        
+        # Donation count 
+        Total_donation = Donation_model.objects.filter(is_active = False).count()
+
+        # Profession count 
+        Total_professional = User_details.objects.filter(account_status = "Approved", is_admin = False).count()
+
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": {
+                "event_count": Total_event, 
+                "donation_count": Total_donation,
+                "professional_count": Total_professional
+            }
+        }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network reqwuest failed"
+        }, status=500)

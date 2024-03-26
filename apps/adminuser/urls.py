@@ -37,6 +37,9 @@ urlpatterns = [
 
     # Transaction view
     path("transaction", views.transaction_view, name="transaction_view"), 
-    path("uploadImage", views.admin_upload_image, name="admin_upload_image")
+    path("uploadImage", views.admin_upload_image, name="admin_upload_image"), 
+
+    # Dashboard related CRUD 
+    path("dashboard", views.dashboard_count_view, name="dashboard_count_view")
     
 ]
