@@ -3,6 +3,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from apps.user.helpers import CheckUserAuthentication
 from rest_framework.response import Response
 from apps.donation.models import Details as Donation_details 
+from apps.user.models import Donation as User_donation_model
 from datetime import datetime
 from django.core.paginator import Paginator, EmptyPage
 from apps.donation import serializer
@@ -35,7 +36,6 @@ def donation_list_view(request):
             "data": Donation_list_paginator_page_data.data
         }, status=200)
     except Exception as e:
-        print(e)
         return Response({
             "status": False, 
             "message": "Network request failed"
@@ -122,5 +122,36 @@ def donation_payment_view(request):
     except Exception as e:
         return Response({
             "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_transaction_view(request):
+    try:
+
+        page_number = int(request.query_params.get("page_number"))
+        page_size = int(request.query_params.get("page_size"))
+
+        User_donation_transaction = User_donation_model.objects.filter(user_id = request.user.id).order_by("-id")
+        User_donation_transaction_paginator = Paginator(User_donation_transaction, page_size)
+
+        try:
+            User_donation_transaction_paginator_page = User_donation_transaction_paginator.page(page_number)
+        except EmptyPage:
+            User_donation_transaction_paginator_page = []
+
+        User_donation_transaction_paginator_page_data = serializer.DonationTransactionList(User_donation_transaction_paginator_page, many = True)
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": User_donation_transaction_paginator_page_data.data
+        }, status=200)
+    except Exception as e:
+        print(e)
+        return Response({
+            "status": False,
             "message": "Network request failed"
         }, status=500)

@@ -1,5 +1,6 @@
 from rest_framework import serializers 
 from apps.donation.models import Details as Donation_details
+from apps.user.models import Donation as User_donation
 from djstripe.models import Session
 from django.db.models import Sum
 
@@ -28,3 +29,19 @@ class DonationPaymentSerializer(serializers.Serializer):
     amount = serializers.FloatField(required = True)
     donation_name = serializers.CharField(required = True)
     is_name_visible = serializers.BooleanField(required = True)
+
+
+class DonationTransactionList(serializers.ModelSerializer):
+    donation_details = serializers.SerializerMethodField()
+    class Meta:
+        model = User_donation
+        fields = ["id", "transaction_status", "donation_details", "created_at", "updated_at"]
+
+    def get_donation_details(self, object):
+        try:
+            return {
+                "donation_name": object.donation.donation_name,
+                "donation_image": object.donation.image
+            }
+        except Exception as e:
+            return {}
