@@ -38,7 +38,7 @@ class Event(models.Model):
     user = models.ForeignKey("user.Details", on_delete = models.CASCADE)
     event = models.ForeignKey("event.Details", on_delete = models.CASCADE) # event id information  
     family_id = models.CharField(max_length = 100, default = None, null = True) # family id 
-    event_type = models.BooleanField(default = False)
+    event_type = models.CharField(max_length = 100, default = None, null = True)
     book_by = models.ForeignKey(Details, on_delete=models.CASCADE, related_name = "book_user_id", null = True)
     status = models.CharField(max_length = 100, default = "Upcoming", null = True)
     ticket_number = models.CharField(max_length = 100, default = None, null = True) #ticket id 6digit random number 

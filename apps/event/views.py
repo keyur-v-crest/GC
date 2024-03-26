@@ -169,7 +169,7 @@ def event_payment_view(request):
                 )
                 # Create enrty in user event table 
                 for item in user_list:
-                    User_event_object, created = User_event_model.objects.get_or_create(
+                    User_event_model.objects.get_or_create(
                         family_id=request.user.family_id,
                         event_id=request.data['event_id'],
                         user_id=item,
@@ -200,6 +200,45 @@ def event_payment_view(request):
             'message': "Network request failed"
         }, status=500)
     
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_ticketdetails_view(request, id):
+    try:
+
+        # Fetch particular event details 
+        Particular_event_details = Event_details.objects.get(id =id)
+        
+        # Fetch joined user count 
+        Fetch_joined_user = User_event_model.objects.filter(book_by_id = request.user.id, event_id = id, transaction_status = "Complete").count()
+        
+        # Ticket number 
+        Ticket_number = User_event_model.objects.filter(user_id = request.user.id, event_id = id, transaction_status = "Complete").values("ticket_number")
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data":{
+                "event":{
+                    "event_image": Particular_event_details.event_image, 
+                    "event_name": Particular_event_details.event_name, 
+                    "organizer_name": Particular_event_details.organizer_name, 
+                    "event_date": Particular_event_details.event_date, 
+                    "event_start_time":  Particular_event_details.event_start_time, 
+                    "event_end_time": Particular_event_details.event_end_time, 
+                    "event_address": Particular_event_details.event_address, 
+                    "event_address_latitude": Particular_event_details.event_address_latitude, 
+                    "event_address_longitude": Particular_event_details.event_address_longitude
+                }, 
+                "joined_member": Fetch_joined_user, 
+                "ticket_information": Ticket_number
+            }
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
