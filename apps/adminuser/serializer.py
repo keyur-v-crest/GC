@@ -216,7 +216,7 @@ class DonationTransactionListSerializer(serializers.ModelSerializer):
     transaction_info = serializers.SerializerMethodField()
     class Meta:
         model = User_donation
-        fields = ["id", "user_info", "transaction_info"]
+        fields = ["id", "user_info", "transaction_info", "created_at", "updated_at", "is_name_visible"]
 
     def get_user_info(self, object): 
         try:
