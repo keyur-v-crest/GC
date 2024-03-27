@@ -7,6 +7,8 @@ urlpatterns = [
     path("userSignupStep3", views.RouteUserSignupStep3), 
     path("userSignupStep4", views.RotueUserSignupStep4), 
     path("login", views.RouteUserLogin), 
-    path("familyMember", views.RouteFetchFamilyMembers)
-
+    path("familyMember", views.RouteFetchFamilyMembers), 
+    path("achievment/create", views.achievment_create_view), 
+    path("achievment/update/<int:id>", views.achievment_update_view), 
+    path("achievment", views.achievment_list_view)
 ]

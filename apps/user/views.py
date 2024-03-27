@@ -4,6 +4,7 @@ from apps.user import serializer
 from rest_framework.response import Response 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from apps.user.models import Details as User_details
+from apps.user.models import Achievments as Achievments_model
 from django.contrib.auth.hashers import make_password, check_password 
 from rest_framework_simplejwt.tokens import RefreshToken
 import uuid
@@ -313,4 +314,91 @@ def RouteFetchFamilyMembers(request):
         return Response({
             'status': False, 
             'message': "Network request failed"
+        }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def achievment_create_view(request):
+    try:
+        if serializer.AcheivementCreateSerializer(data = request.data).is_valid():
+            Achievments_model.objects.create(
+                user_id = request.user.id, 
+                image = request.data['image'], 
+                linkdin = request.data['linkdin'], 
+                upwork = request.data['upwork']
+            )
+            return Response({
+                "status": True, 
+                "message": "Create"
+            }, status=200) 
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to create Achievment"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def achievment_update_view(request, id):
+    try:
+
+        if serializer.AcheivementCreateSerializer(data = request.data).is_valid():
+            Achivemenet_object = Achievments_model.objects.get(id = id)
+            Achivemenet_object.image = request.data['image']
+            Achivemenet_object.linkdin = request.data['linkdin']
+            Achivemenet_object.upwork = request.data['upwork']
+            Achivemenet_object.save()
+            return Response({
+                "status": True,
+                "message": "Update"
+            }, status=200)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to update achivement"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False,
+            "message": "Network request failed"
+        }, status=500)
+        
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def achievment_list_view(request):
+    try:
+
+        User_achivement_list = Achievments_model.objects.filter(user_id = request.user.id).values("id")
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": User_achivement_list
+        }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def achievement_details_view(request, id):
+    try:
+        return Response({
+            "status": True,
+            "message": "Fetch"
+        })
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
         }, status=500)

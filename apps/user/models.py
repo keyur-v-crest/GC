@@ -64,3 +64,18 @@ class Donation(models.Model):
     def save(self, *args, **kwargs): 
         self.updated_at = timezone.now() 
         super().save(*args, **kwargs) 
+
+
+class Achievments(models.Model):
+    id = models.AutoField(primary_key = True)
+    user = models.ForeignKey("user.Details", on_delete = models.CASCADE)
+    image = models.CharField(max_length = 1000, null = True)
+    linkdin = models.CharField(max_length = 1000, null = True)
+    upwork = models.CharField(max_length = 1000, null = True)
+    is_delete = models.BooleanField(default = False)
+    created_at = models.DateTimeField(auto_now_add = True, null = True)
+    updated_at = models.DateTimeField(auto_now = True, null = True)
+
+    def save(self, *args, **kwargs): 
+        self.updated_at = timezone.now() 
+        super().save(*args, **kwargs) 
