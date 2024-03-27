@@ -13,6 +13,7 @@ urlpatterns = [
 
     path("screen/achievment", views.achivement_screen_list_view),
     path("screen/achievers", views.achiever_list_view),  
+    path("screen/achievment/<int:id>", views.achivement_details_view), 
 
     # User profile CRUD
     path("profile", views.user_profiiledetails_view), 

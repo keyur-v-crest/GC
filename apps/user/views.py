@@ -421,11 +421,36 @@ def achiever_list_view(request):
             "data": Achiever_list_paginator_page_data.data
         }, status=200)
     except Exception as e:
-        print(e)
         return Response({
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def achivement_details_view(request, id):
+    try:
+
+        Achievment_object = Achievments_model.objects.get(id = id)
+        return Response({
+            "status": True,
+            "message": "Fetch", 
+            "data": {
+                "background_image": Achievment_object.user.background_image, 
+                "username": Achievment_object.user.first_name, 
+                "count": Achievment_object.count, 
+                "achivement": Achievment_object.name, 
+                "profession": Achievment_object.user.profession, 
+                "profession_description": Achievment_object.user.profession_description
+            }
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
     
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
