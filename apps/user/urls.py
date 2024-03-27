@@ -9,5 +9,11 @@ urlpatterns = [
     path("login", views.RouteUserLogin), 
     path("familyMember", views.RouteFetchFamilyMembers), 
     path("achievment/create", views.achievment_create_view), 
-    path("achievment", views.achievment_list_view),
+    path("achievment", views.achievment_list_view), 
+
+    path("screen/achievment", views.achivement_screen_list_view), 
+
+    # User profile CRUD
+    path("profile", views.user_profiiledetails_view), 
+    path("profile/update", views.user_profile_update_view)
 ]

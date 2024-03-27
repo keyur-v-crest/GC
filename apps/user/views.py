@@ -368,3 +368,100 @@ def achievment_list_view(request):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+
+import random
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def achivement_screen_list_view(request):
+    try:
+
+        Random_achivers = Achievments_model.objects.all() 
+        Random_achivers_data = Random_achivers[:10]
+        
+        return Response({
+            "status": True,
+            "message": "Fetch"
+        }, status=400)
+    except Exception as e:
+        return Response({
+            'status': False, 
+            "message":"Network request failed"
+        }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_profiiledetails_view(request):
+    try:
+
+        # Reterive user achivement 
+        User_achivements = Achievments_model.objects.filter(user_id = request.user.id).values("name")
+        return Response({
+            "status": True,
+            "message": "Fetch", 
+            "data": {
+                "profile_image": request.user.profile_image, 
+                "username": request.user.first_name, 
+                "dob": request.user.dob, 
+                "email": request.user.email, 
+                "gender": request.user.gender, 
+                "address": request.user.address,
+                "profession": request.user.profession, 
+                "linkdin": request.user.linkdin, 
+                "upwork": request.user.upwork, 
+                "background_image": request.user.background_image, 
+                "achivements": User_achivements
+            }
+        })
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_profile_update_view(request):
+    try:
+
+        if serializer.ProfileUpdateSerializer(data = request.data).is_valid(): 
+
+            # Check email 
+            Check_email = User_details.objects.filter(email = request.data['email']).exclude(id = request.user.id).count()
+
+            if Check_email == 0 :
+                User_object = User_details.objects.get(id = request.user.id)
+                User_object.profile_image = request.data['user_image']
+                User_object.first_name = request.data['username']
+                User_object.dob = request.data['dob']
+                User_object.email = request.data['email']
+                User_object.gender = request.data['gender']
+                User_object.address = request.data['address']
+                User_object.profession = request.data['profession']
+                User_object.linkdin = request.data['linkdin']
+                User_object.upwork = request.data['upwork']
+                User_object.background_image = request.data['background_image']
+                User_object.save()
+
+                return Response({
+                    "status": True,
+                    "message": "Update"
+                }, status=200)
+            
+            else:
+                return Response({
+                    "status": False, 
+                    "message": "Failed to update user profile"
+                }, status=400)
+        else:
+            return Response({
+                "status": True, 
+                "message": "Failed to update"
+            }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)

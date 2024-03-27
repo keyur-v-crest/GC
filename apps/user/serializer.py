@@ -40,3 +40,19 @@ class SerializerFetchFamilyMemberInfo(serializers.ModelSerializer):
 
 class AcheivementCreateSerializer(serializers.Serializer):
     name = serializers.ListField(required = True)
+
+class AchivementListSerializer(serializers.ModelSerializer):
+    pass
+
+class ProfileUpdateSerializer(serializers.Serializer):
+    user_image = serializers.CharField(required = True)
+    username = serializers.CharField(required= True)
+    dob = serializers.CharField(required = True)
+    email = serializers.CharField(required = True)
+    gender = serializers.CharField(required = True)
+    address = serializers.CharField(required = True)
+    profession = serializers.CharField(required = True)
+    linkdin = serializers.CharField(required = True, allow_null = True)
+    upwork = serializers.CharField(required = True, allow_null = True)
+    background_image = serializers.CharField(required = True, allow_null = True)
+    achivements = serializers.ListField(required = True)
