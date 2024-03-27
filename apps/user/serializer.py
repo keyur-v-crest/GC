@@ -39,6 +39,4 @@ class SerializerFetchFamilyMemberInfo(serializers.ModelSerializer):
         fields = ['id', 'email', 'first_name']
 
 class AcheivementCreateSerializer(serializers.Serializer):
-    image = serializers.CharField(required = True)
-    linkdin = serializers.CharField(required = True)
-    upwork = serializers.CharField(required = True, allow_null = True, allow_blank = True)
+    name = serializers.ListField(required = True)

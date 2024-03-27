@@ -69,9 +69,8 @@ class Donation(models.Model):
 class Achievments(models.Model):
     id = models.AutoField(primary_key = True)
     user = models.ForeignKey("user.Details", on_delete = models.CASCADE)
-    image = models.CharField(max_length = 1000, null = True)
-    linkdin = models.CharField(max_length = 1000, null = True)
-    upwork = models.CharField(max_length = 1000, null = True)
+    name = models.JSONField(default = dict)
+    count = models.IntegerField(default = 0)
     is_delete = models.BooleanField(default = False)
     created_at = models.DateTimeField(auto_now_add = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, null = True)

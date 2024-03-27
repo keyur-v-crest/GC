@@ -9,6 +9,5 @@ urlpatterns = [
     path("login", views.RouteUserLogin), 
     path("familyMember", views.RouteFetchFamilyMembers), 
     path("achievment/create", views.achievment_create_view), 
-    path("achievment/update/<int:id>", views.achievment_update_view), 
-    path("achievment", views.achievment_list_view)
+    path("achievment", views.achievment_list_view),
 ]
