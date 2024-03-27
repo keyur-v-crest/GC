@@ -378,10 +378,12 @@ def achivement_screen_list_view(request):
 
         Random_achivers = Achievments_model.objects.all() 
         Random_achivers_data = Random_achivers[:10]
+        Random_achivers_data = serializer.AchivementListSerializer(Random_achivers_data, many = True)
         
         return Response({
             "status": True,
-            "message": "Fetch"
+            "message": "Fetch", 
+            "data": Random_achivers_data.data
         }, status=400)
     except Exception as e:
         return Response({

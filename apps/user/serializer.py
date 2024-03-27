@@ -1,5 +1,6 @@
 from rest_framework import serializers 
 from apps.user.models import Details
+from apps.user.models import Achievments as User_achievments
 
 class SerializerCreateUserStep1(serializers.Serializer):
     first_name = serializers.CharField(required = True)
@@ -42,7 +43,23 @@ class AcheivementCreateSerializer(serializers.Serializer):
     name = serializers.ListField(required = True)
 
 class AchivementListSerializer(serializers.ModelSerializer):
-    pass
+    user_details = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User_achievments
+        fields = ['id', "count", "user_details"]
+
+    def get_user_details(self, object):
+        try:
+            return {
+                "background_image": object.user.background_image,
+                "profile_image": object.user.profile_image,
+                "username": object.user.first_name, 
+                "profession": object.user.profession, 
+                "profession_description": object.user.profession_description
+            }
+        except Exception as e:
+            return {}
 
 class ProfileUpdateSerializer(serializers.Serializer):
     user_image = serializers.CharField(required = True)
