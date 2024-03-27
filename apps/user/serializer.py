@@ -71,7 +71,9 @@ class AchieverListSerializer(serializers.ModelSerializer):
         try:
             return {
                 "user_image": object.user.profile_image,
-                "username": object.user.first_name
+                "username": object.user.first_name, 
+                "linkdin": object.user.linkdin, 
+                "upwork": object.user.upwork
             }
         except Exception as e:
             return {}

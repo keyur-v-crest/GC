@@ -400,7 +400,7 @@ def achiever_list_view(request):
 
         page_number = int(request.query_params.get("page_number"))
         page_size = int(request.query_params.get('page_size'))
-        count_sort = int(request.query_params.get('count_sort'))
+        count_sort = (request.query_params.get('count_sort'))
 
         if count_sort == "yes":
             Achiever_list = Achievments_model.objects.all().order_by("-count")
@@ -421,6 +421,7 @@ def achiever_list_view(request):
             "data": Achiever_list_paginator_page_data.data
         }, status=200)
     except Exception as e:
+        print(e)
         return Response({
             "status": False, 
             "message": "Network request failed"
