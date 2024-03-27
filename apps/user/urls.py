@@ -17,5 +17,8 @@ urlpatterns = [
 
     # User profile CRUD
     path("profile", views.user_profiiledetails_view), 
-    path("profile/update", views.user_profile_update_view)
+    path("profile/update", views.user_profile_update_view), 
+
+    # Change password CRUD
+    path("changepassword", views.user_changepassword_view)
 ]

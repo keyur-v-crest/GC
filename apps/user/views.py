@@ -214,7 +214,7 @@ def RotueUserSignupStep4(request):
 def RouteUserLogin(request):
     try:
 
-        if SerializerUserLogin(data = request.data).is_valid():
+        if serializer.SerializerUserLogin(data = request.data).is_valid():
 
             pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$' 
             mobile_number_pattern = r'^(\+\d{1,3}[- ]?)?\d{10}$'
@@ -528,3 +528,37 @@ def user_profile_update_view(request):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_changepassword_view(request):
+    try:
+
+        if serializer.ChangePasswordSerializer(data = request.data).is_valid():
+            
+            if check_password(request.data['current_password'], request.user.password):
+                User_object = User_details.objects.get(id = request.user.id)
+                User_object.password = make_password(request.data['new_password'])
+                User_object.save() 
+                return Response({
+                    "status": True,
+                    "message": "Update"
+                }, status=200)
+
+            else:
+                return Response({
+                    "status": False, 
+                    "message": "Your password is incorrect"
+                }, status=400)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to update password"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+        

@@ -90,3 +90,7 @@ class ProfileUpdateSerializer(serializers.Serializer):
     upwork = serializers.CharField(required = True, allow_null = True)
     background_image = serializers.CharField(required = True, allow_null = True)
     achivements = serializers.ListField(required = True)
+
+class ChangePasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(required = True)
+    current_password = serializers.CharField(required = True)
