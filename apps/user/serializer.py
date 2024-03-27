@@ -60,6 +60,21 @@ class AchivementListSerializer(serializers.ModelSerializer):
             }
         except Exception as e:
             return {}
+        
+class AchieverListSerializer(serializers.ModelSerializer): 
+    user_details = serializers.SerializerMethodField()
+    class Meta:
+        model = User_achievments
+        fields = ["id", "count", "user_details"]
+    
+    def get_user_details(self, object):
+        try:
+            return {
+                "user_image": object.user.profile_image,
+                "username": object.user.first_name
+            }
+        except Exception as e:
+            return {}
 
 class ProfileUpdateSerializer(serializers.Serializer):
     user_image = serializers.CharField(required = True)

@@ -188,35 +188,27 @@ def event_create_view(requets):
 @permission_classes([CheckUserAuthentication])
 def event_list_view(request):
     try:
+        if "search" in request.query_params:
+            All_event = Event_details.objects.filter(event_name__icontains=request.query_params.get("search"), event_delete = False).order_by("-id") 
+        else:
+            All_event = Event_details.objects.filter(event_delete = False).order_by("-id") 
+        
+        All_event_paginator = Paginator(All_event, request.query_params.get("page_size"))
 
-        if serializer.SerializerPaginator(data = request.data).is_valid():
-            
-            if "search" in request.query_params:
-                All_event = Event_details.objects.filter(event_name__icontains=request.query_params.get("search"), event_delete = False).order_by("-id") 
-            else:
-                All_event = Event_details.objects.filter(event_delete = False).order_by("-id") 
-            
-            All_event_paginator = Paginator(All_event, request.query_params.get("page_size"))
+        try:
+            All_event_paginator_page = All_event_paginator.page(int(request.query_params.get("page_number")))
+        except PageNotAnInteger:
+            All_event_paginator_page = All_event_paginator.page(1)
+        except EmptyPage: 
+            All_event_paginator_page = []
 
-            try:
-                All_event_paginator_page = All_event_paginator.page(int(request.query_params.get("page_number")))
-            except PageNotAnInteger:
-                All_event_paginator_page = All_event_paginator.page(1)
-            except EmptyPage: 
-                All_event_paginator_page = []
+        All_event_paginator_page = serializer.SerializerFetchEventList(All_event_paginator_page, many = True)
 
-            All_event_paginator_page = serializer.SerializerFetchEventList(All_event_paginator_page, many = True)
-
-            return Response({
-                'status': True, 
-                "message": "Fetch", 
-                "data" : All_event_paginator_page.data
-            }, status=200)
-        else: 
-            return Response({
-                "status": False,
-                'message': "Failed"
-            }, status=400)
+        return Response({
+            'status': True, 
+            "message": "Fetch", 
+            "data" : All_event_paginator_page.data
+        }, status=200)
     except Exception as e:
         return Response({
             'status': False, 
@@ -862,7 +854,10 @@ def dashboard_count_view(request):
         Total_donation = Donation_model.objects.filter(is_active = False).count()
 
         # Profession count 
-        Total_professional = User_details.objects.filter(account_status = "Approved", is_admin = False).count()
+        Total_professional = User_details.objects.filter(account_status = "Approved", is_admin = False).count() 
+
+        # Total news count 
+        Total_news = News_model.objects.filter(is_active = False).count()
 
         return Response({
             "status": True, 
@@ -870,7 +865,8 @@ def dashboard_count_view(request):
             "data": {
                 "event_count": Total_event, 
                 "donation_count": Total_donation,
-                "professional_count": Total_professional
+                "professional_count": Total_professional, 
+                "news_count": Total_news
             }
         }, status=200)
     except Exception as e:

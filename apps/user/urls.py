@@ -11,7 +11,8 @@ urlpatterns = [
     path("achievment/create", views.achievment_create_view), 
     path("achievment", views.achievment_list_view), 
 
-    path("screen/achievment", views.achivement_screen_list_view), 
+    path("screen/achievment", views.achivement_screen_list_view),
+    path("screen/achievers", views.achiever_list_view),  
 
     # User profile CRUD
     path("profile", views.user_profiiledetails_view), 

@@ -174,10 +174,27 @@ class CreateDonationSerializer(serializers.Serializer):
     
 
 class DonationListDataFetch(serializers.ModelSerializer): 
+    raise_amount = serializers.SerializerMethodField()
+    last_transaction = serializers.SerializerMethodField()
     class Meta:
         model = Donation_details 
-        fields = ["id", "donation_name", "image", "image", "donation_address", "donation_target", "organizer_name", "created_at", "updated_at", "organizer_image"]
+        fields = ["id", "donation_name", "image", "image", "donation_address", "donation_target", "organizer_name", "created_at", "updated_at", 
+            "organizer_image", "donation_city", "raise_amount", "last_transaction"]
 
+    def get_raise_amount(self, object): 
+        try:
+            Total_amount = Session.objects.filter(metadata__contains={"donation_id": str(object.id)}, payment_status = "paid").aggregate(total_amount = Sum("amount_total"))
+            return Total_amount
+        except Exception as e:
+            return 0
+    
+    def get_last_transaction(self, object): 
+        try:
+            Donation_last_transaction = Session.objects.filter(metadata__contains= {"donation_id": str(object.id)}, payment_status="paid").values("djstripe_updated").order_by("-id").first()
+            return Donation_last_transaction
+        except Exception as e:
+            return None
+        
 class UploadImageSerializer(serializers.Serializer):
     image = serializers.FileField(required = True)
     # type = serializers.CharField(required = True)

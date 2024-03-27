@@ -11,6 +11,7 @@ import uuid
 from apps.user.helpers import HelperCreateFamilyId, CheckUserAuthentication,  HelperGeneratePassword
 from rest_framework_simplejwt.authentication import JWTAuthentication 
 import re
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 @api_view(["POST"])
 def RouteUserSignStep1(request): 
@@ -389,6 +390,40 @@ def achivement_screen_list_view(request):
         return Response({
             'status': False, 
             "message":"Network request failed"
+        }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def achiever_list_view(request):
+    try:
+
+        page_number = int(request.query_params.get("page_number"))
+        page_size = int(request.query_params.get('page_size'))
+        count_sort = int(request.query_params.get('count_sort'))
+
+        if count_sort == "yes":
+            Achiever_list = Achievments_model.objects.all().order_by("-count")
+        else:
+            Achiever_list = Achievments_model.objects.all().order_by("-id")
+        Achiever_list_paginator = Paginator(Achiever_list, page_size)
+
+        try:
+            Achiever_list_paginator_page = Achiever_list_paginator.page(page_number)
+        except EmptyPage: 
+            Achiever_list_paginator_page = []
+
+        Achiever_list_paginator_page_data = serializer.AchieverListSerializer(Achiever_list_paginator_page, many = True)
+
+        return Response({
+            "status": True,
+            "message": "Fetch", 
+            "data": Achiever_list_paginator_page_data.data
+        }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
         }, status=500)
     
 @api_view(["GET"])
