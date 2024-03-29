@@ -9,7 +9,8 @@ from apps.user.helpers import CheckUserAuthentication
 import uuid
 from apps.event.models import Details as Event_details 
 from apps.event.models import Gallery as Event_gallery
-from apps.user.models import Event as User_event_model 
+from apps.user.models import Event as User_event_model
+from apps.user.models import Achievments as Achivement_models 
 from apps.user.models import Donation as User_donation_model
 from apps.news.models import Details as News_model
 from apps.donation.models import Details as Donation_model
@@ -1083,3 +1084,34 @@ def donation_transactionlist_view(request, id):
             "status": False, 
             "message": "Network request failed"
         }, status = 500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def professional_list_view(request): 
+    try:
+        page_number = int(request.query_params.get("page_number"))
+        page_size = int(request.query_params.get("page_size")) 
+
+        Professional_list = Achivement_models.objects.filter(is_delete=False) 
+        Professional_list_paginator = Paginator(Professional_list, page_size)
+
+        try: 
+            Professional_list_paginator_page = Professional_list_paginator.page(page_number)
+        except EmptyPage: 
+            Professional_list_paginator_page = []
+
+
+        Professional_list_paginator_page_data = serializer.AchieverListSerializer(Professional_list_paginator_page, many = True)
+
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": Professional_list_paginator_page_data.data
+        }, status=200)
+        
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)

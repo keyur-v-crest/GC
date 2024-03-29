@@ -49,5 +49,8 @@ urlpatterns = [
     path("news/<int:id>", views.news_details_view, name="news_details"), 
     path("news/update/<int:id>", views.news_update_view, name="news_update"), 
     path("news/delete/<int:id>", views.news_delete_view, name="news_delete"), 
-    path("news", views.news_list_view, name="news_list")
+    path("news", views.news_list_view, name="news_list"), 
+
+    # Profession related CRUD
+    path("professional", views.professional_list_view, name="professional_list")
 ]

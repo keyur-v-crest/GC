@@ -6,6 +6,7 @@ from apps.news.models import Details as News_details
 from djstripe.models import Session
 from apps.user.models import Event as User_event
 from apps.user.models import Donation as User_donation
+from apps.user.models import Achievments as Achievment_model
 from apps.donation.models import Details as Donation_details
 from djstripe.models import WebhookEventTrigger
 import json 
@@ -256,3 +257,19 @@ class DonationTransactionListSerializer(serializers.ModelSerializer):
             return {}
 
 
+class AchieverListSerializer(serializers.ModelSerializer): 
+    user_details = serializers.SerializerMethodField()
+    class Meta:
+        model = Achievment_model
+        fields = ["id", "count", "user_details"]
+    
+    def get_user_details(self, object):
+        try:
+            return {
+                "user_image": object.user.profile_image,
+                "username": object.user.first_name, 
+                "linkdin": object.user.linkdin, 
+                "upwork": object.user.upwork
+            }
+        except Exception as e:
+            return {}
