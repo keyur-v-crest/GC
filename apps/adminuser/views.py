@@ -1115,3 +1115,47 @@ def professional_list_view(request):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+    
+@api_view(["DELETE"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def professional_delete_view(request, id):
+    try:
+        Achivement_models.objects.filter(id = id).update(is_delete = True)
+        return Response({
+            "status": True, 
+            "message": "Delete"
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def professional_details_view(request, id):
+    try:
+
+        Achivement_object = Achivement_models.objects.get(id = id)
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data":{
+                "backgruond_image": Achivement_object.user.background_image,
+                "username": Achivement_object.user.first_name, 
+                "count": Achivement_object.count, 
+                "achivement": Achivement_object.name, 
+                "description": Achivement_object.user.profession_description, 
+                "linkdin": Achivement_object.user.linkdin, 
+                "mobileNumber": Achivement_object.user.mobile
+            }
+        }, status = 200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+        

@@ -52,5 +52,7 @@ urlpatterns = [
     path("news", views.news_list_view, name="news_list"), 
 
     # Profession related CRUD
-    path("professional", views.professional_list_view, name="professional_list")
+    path("professional", views.professional_list_view, name="professional_list"), 
+    path("professional/delete/<int:id>", views.professional_delete_view, name="professional_delete"), 
+    path("professional/<int:id>", views.professional_details_view, name="professional_details")
 ]
