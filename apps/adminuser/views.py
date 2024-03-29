@@ -313,12 +313,13 @@ def event_update_view(request, id):
 @permission_classes([CheckUserAuthentication])
 def event_delete_view(request, id): 
     try:
-        Event_details.objects.filter(id = id).update(event_delet = True)
+        Event_details.objects.filter(id = id).update(event_delete = True)
         return Response({
             "status": True, 
             "message": "Delete"
         }, status=200) 
     except Exception as e:
+        print(e)
         return Response({
             'status': False, 
             'message': "Network request failed"
@@ -889,7 +890,7 @@ def news_create_view(request):
                 short_description = request.data['short_description'], 
                 publish_date = request.data['publish_date'], 
                 description = request.data['description'], 
-                create_by = request.user.id
+                create_by_id = request.user.id
             )
 
             if request.data['news_type'] == "Announcement":
@@ -907,6 +908,7 @@ def news_create_view(request):
                 "message": "Failed to create news"
             }, status=400)
     except Exception as e:
+        print(e)
         return Response({
             "status": False, 
             "message": "Network reqwuest failed"
@@ -992,7 +994,7 @@ def news_list_view(request):
         except EmptyPage:
             All_news_paginator_page = []
         
-        All_news_paginator_page_data = serializer.NewsCreateSerializer(All_news_paginator_page, many = True)
+        All_news_paginator_page_data = serializer.NewsListFetch(All_news_paginator_page, many = True)
 
         return Response({
             "status": True, 
@@ -1010,7 +1012,9 @@ def news_list_view(request):
 @permission_classes([CheckUserAuthentication])
 def news_delete_view(request, id):
     try:
-        News_model.objects.filter(id = id).filter(is_active = True)
+        print("Id information")
+        print(id)
+        News_model.objects.filter(id = id).update(is_active = True)
         return Response({
             "status": True,
             "message": "Delete"
