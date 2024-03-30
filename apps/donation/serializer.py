@@ -9,7 +9,8 @@ class DonationListSerializer(serializers.ModelSerializer):
     last_transaction = serializers.SerializerMethodField()
     class Meta:
         model = Donation_details
-        fields = ["id", "image", "organizer_image", "organizer_name", "donation_name", "donation_target", "raise_amount", "last_transaction"]
+        fields = ["id", "image", "organizer_image", "organizer_name", "donation_name", "donation_target", "raise_amount", "last_transaction", 
+                "donation_city", "donation_state"]
 
     def get_raise_amount(self, object): 
         try:

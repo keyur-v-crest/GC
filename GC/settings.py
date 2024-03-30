@@ -143,6 +143,11 @@ AWS_S3_URL_PROTOCOL = 'https'
 AWS_S3_USE_SSL = True
 AWS_S3_VERIFY = True
 
+# TWIILIO credentials 
+TWILLIO_SID=env("TWILLO_SID")
+TWILLIO_TOKEN=env("TWILLIO_TOKEN")
+TWILLIO_NUMBER=env("TWILLIO_NUMBER")
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 

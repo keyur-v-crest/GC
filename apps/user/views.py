@@ -385,7 +385,7 @@ def achivement_screen_list_view(request):
             "status": True,
             "message": "Fetch", 
             "data": Random_achivers_data.data
-        }, status=400)
+        }, status=200)
     except Exception as e:
         return Response({
             'status': False, 

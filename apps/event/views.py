@@ -55,7 +55,10 @@ def event_featuredlist_view(request):
         page_number = int(request.query_params.get("page_number"))
         page_size = int(request.query_params.get("page_size"))
 
-        Event_information = Event_details.objects.filter(publish_date__gte = seven_days_from_now)
+        if "category" in request.query_params:
+            Event_information = Event_details.objects.filter(publish_date__gte = seven_days_from_now)
+        else:
+            Event_information = Event_details.objects.filter(publish_date__gte = seven_days_from_now)
         Event_information_paginator = Paginator(Event_information, page_size)
 
         try:
