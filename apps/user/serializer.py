@@ -1,6 +1,7 @@
 from rest_framework import serializers 
 from apps.user.models import Details
 from apps.user.models import Achievments as User_achievments
+from apps.user.models import BannerImage
 
 class SerializerCreateUserStep1(serializers.Serializer):
     first_name = serializers.CharField(required = True)
@@ -95,3 +96,8 @@ class ProfileUpdateSerializer(serializers.Serializer):
 class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(required = True)
     current_password = serializers.CharField(required = True)
+
+class BannerListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BannerImage
+        fields = ["id", "image", "title", "subtitle"]

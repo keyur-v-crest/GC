@@ -75,8 +75,8 @@ def category_update_view(request, id):
 def category_list_view(request): 
     try:
 
-        if "category_typpe" in request.query_params:
-            Category_data = Category_details.objects.filter(category_type = request.query_prams.get("category_type")).order_by("-id")
+        if "category_type" in request.query_params:
+            Category_data = Category_details.objects.filter(category_type = request.query_params.get("category_type")).order_by("-id")
         else:
             Category_data = Category_details.objects.all().order_by("-id")
         

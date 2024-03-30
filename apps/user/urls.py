@@ -20,5 +20,8 @@ urlpatterns = [
     path("profile/update", views.user_profile_update_view), 
 
     # Change password CRUD
-    path("changepassword", views.user_changepassword_view)
+    path("changepassword", views.user_changepassword_view), 
+
+    # Banner image
+    path("banner", views.user_banner_image)
 ]

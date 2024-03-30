@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from apps.user.models import Details as User_details
 from apps.user.models import Achievments as Achievments_model
+from apps.user.models import BannerImage
 from django.contrib.auth.hashers import make_password, check_password 
 from rest_framework_simplejwt.tokens import RefreshToken
 import uuid
@@ -561,4 +562,22 @@ def user_changepassword_view(request):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
-        
+
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_banner_image(request):
+    try:
+
+        Banner_images = BannerImage.objects.all().order_by("-id")
+        Banner_images_data = serializer.BannerListSerializer(Banner_images, many = True)
+        return Response({
+            "status": 200 ,
+            "message": "Fetch", 
+            "data": Banner_images_data.data
+        }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)

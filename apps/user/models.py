@@ -81,3 +81,9 @@ class Achievments(models.Model):
     def save(self, *args, **kwargs): 
         self.updated_at = timezone.now() 
         super().save(*args, **kwargs) 
+
+class BannerImage(models.Model):
+    id = models.AutoField(primary_key = True)
+    image = models.CharField(max_length = 2000, default = None, null = True)
+    title = models.CharField(max_length = 2000, default = None, null = True)
+    subtitle = models.CharField(max_length = 2000, default = None, null = True)
