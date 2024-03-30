@@ -38,7 +38,7 @@ class PaymentDetails(serializers.ModelSerializer):
 class EventDetails(serializers.ModelSerializer):
     class Meta:
         model = Details
-        fields = ["id", "event_image", "event_name", "event_description", "organizer_name", "price", "event_address", "event_address_latitude", "event_address_longitude"]
+        fields = ["id", "event_image", "event_name", "event_description", "organizer_name", "price", "event_address", "event_address_latitude", "event_address_longitude", "event_date"]
 
 class UserEventListFechSerializer(serializers.ModelSerializer):
     event = EventDetails(read_only = True)

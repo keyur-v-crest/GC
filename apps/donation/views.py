@@ -20,7 +20,14 @@ def donation_list_view(request):
         page_number = int(request.query_params.get("page_number"))
         page_size = int(request.query_params.get("page_size"))
 
-        Donation_list = Donation_details.objects.filter(donation_end_date__gte=today_date, donation_start_date__lte=today_date).order_by("-id")
+        if "category_name" in request.query_params:
+            Donation_list = Donation_details.objects.filter(donation_end_date__gte=today_date, 
+                donation_start_date__lte=today_date, 
+                category_id = request.query_params.get("category_name")
+            ).order_by("-id")
+        else:
+            Donation_list = Donation_details.objects.filter(donation_end_date__gte=today_date, donation_start_date__lte=today_date).order_by("-id")
+
         Donation_list_paginator = Paginator(Donation_list, page_size)
 
         try:
@@ -36,6 +43,7 @@ def donation_list_view(request):
             "data": Donation_list_paginator_page_data.data
         }, status=200)
     except Exception as e:
+        print(e)
         return Response({
             "status": False, 
             "message": "Network request failed"

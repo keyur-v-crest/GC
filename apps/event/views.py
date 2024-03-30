@@ -364,7 +364,7 @@ def event_imagefile_view(request, id):
         }, status=500)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
 def event_date_view(request):
@@ -483,4 +483,39 @@ def event_ticketlist_view(request):
             'message': "Network request failed"
         }, status=500)
     
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_historylist_view(request):
+    try:
+        filter_value = request.query_params.get("option") 
+        page_number = int(request.query_params.get("page_number"))
+        page_size = int(request.query_params.get("page_size"))
+
+        if filter_value == "upcoming" :
+            User_events = User_event_model.objects.filter(user_id = request.user.id, status = "Upcoming").order_by("-event__event_date")
+        else:
+            print("Run this")
+            User_events = User_event_model.objects.filter(user_id = request.user.id, status = "Complete").order_by("-event__event_date")
+        
+        User_events_paginator = Paginator(User_events, page_size)
+
+        try:
+            User_events_paginator_page = User_events_paginator.page(page_number)
+        except EmptyPage: 
+            User_events_paginator_page = [] 
+        
+        User_events_paginator_page_data = serializer.UserEventListFechSerializer(User_events_paginator_page, many = True)
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": User_events_paginator_page_data.data
+        }, status=200)
+    except Exception as e:
+        print("Error message information ========>")
+        print(e)
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
 
