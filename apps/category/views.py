@@ -50,7 +50,6 @@ def category_update_view(request, id):
             Category_objetct = Category_details.objects.get(id = id) 
             Category_objetct.category_name = request.data['name'] 
             Category_objetct.category_image = request.data['image']
-            # Category_objetct.type = request.data['type']
             Category_objetct.is_active = request.data['is_active']
             Category_objetct.save()
 
@@ -75,7 +74,12 @@ def category_update_view(request, id):
 @permission_classes([CheckUserAuthentication])
 def category_list_view(request): 
     try:
-        Category_data = Category_details.objects.all().order_by("-id")
+
+        if "category_typpe" in request.query_params:
+            Category_data = Category_details.objects.filter(category_type = request.query_prams.get("category_type")).order_by("-id")
+        else:
+            Category_data = Category_details.objects.all().order_by("-id")
+        
         Category_data = FetchCategoryList(Category_data, many = True)
         return Response({
             'status': True, 
