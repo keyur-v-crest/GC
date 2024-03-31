@@ -36,9 +36,17 @@ class PaymentDetails(serializers.ModelSerializer):
         fields = [""]
 
 class EventDetails(serializers.ModelSerializer):
+    category_image = serializers.SerializerMethodField()
     class Meta:
         model = Details
-        fields = ["id", "event_image", "event_name", "event_description", "organizer_name", "price", "event_address", "event_address_latitude", "event_address_longitude", "event_date"]
+        fields = ["id", "event_image", "event_name", "event_description", "organizer_name", "price", "event_address", "event_address_latitude", "event_address_longitude", 
+        "event_date", "event_start_time", "event_end_time", "category_image"]
+
+    def get_category_image(self, object): 
+        try:
+            return object.category.category_image
+        except Exception as e:
+            return None
 
 class UserEventListFechSerializer(serializers.ModelSerializer):
     event = EventDetails(read_only = True)

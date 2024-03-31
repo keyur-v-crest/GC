@@ -13,19 +13,29 @@ def category_create_view(request):
     try:
 
         if CreateCategorySerializer(data = request.data).is_valid(): 
-            
-            Create_category = Category_details.objects.create(
-                category_name = request.data['name'], 
-                category_image = request.data['image'], 
-                # type = request.data['type'],  
-                is_active = request.data['is_active']
-            )
-            Create_category.save() 
 
-            return Response({
-                'status': True, 
-                'message': "Create"
-            }, status=200)
+            # Category check 
+            category_check = Category_details.objects.filter(category_name = request.data['name'], category_type = request.data['type']).count()
+
+            if category_check > 0:
+                return Response({
+                    "status": False, 
+                    "message": "Already create category with this name"
+                }, status=400)
+            
+            else:
+                Create_category = Category_details.objects.create(
+                    category_name = request.data['name'], 
+                    category_image = request.data['image'], 
+                    category_type = request.data['type'],  
+                    is_active = request.data['is_active']
+                )
+                Create_category.save() 
+
+                return Response({
+                    'status': True, 
+                    'message': "Create"
+                }, status=200)
         
         else:
             return Response({
@@ -51,6 +61,7 @@ def category_update_view(request, id):
             Category_objetct.category_name = request.data['name'] 
             Category_objetct.category_image = request.data['image']
             Category_objetct.is_active = request.data['is_active']
+            Category_objetct.category_type = request.data['type']
             Category_objetct.save()
 
             return Response({
@@ -124,7 +135,8 @@ def category_details_view(request, id):
             "data": {
                 "category_name": Category_data.category_name, 
                 "category_image": Category_data.category_image, 
-                "is_active": Category_data.is_active
+                "is_active": Category_data.is_active, 
+                "category_type": Category_details.category_type
             }
         }, status=200) 
     except Exception as e:

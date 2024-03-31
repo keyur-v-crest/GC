@@ -4,7 +4,7 @@ from apps.category.models import Details as Category_details
 class CreateCategorySerializer(serializers.Serializer): 
     name = serializers.CharField(required = True)
     image = serializers.CharField(required = True)
-    # type = serializers.CharField(required = True)
+    type = serializers.CharField(required = True)
     is_active = serializers.BooleanField(required = True)
 
 class UpdateCategorySerializer(serializers.Serializer): 
