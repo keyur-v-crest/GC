@@ -84,7 +84,7 @@ def donation_payment_view(request):
 
         if serializer.DonationPaymentSerializer(data = request.data).is_valid():
             
-            status = helpers.check_user_donation_entry(request.user.id, request.data['donation_id'], request.data['is_name_visible'])
+            status, user_donation_id = helpers.check_user_donation_entry(request.user.id, request.data['donation_id'], request.data['is_name_visible'])
             
             # Configure stripe api key 
             stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
@@ -120,7 +120,8 @@ def donation_payment_view(request):
             return Response({
                 "status": True,
                 "message": "Create", 
-                "payment_url": session.url
+                "payment_url": session.url, 
+                "donation_id": user_donation_id
             }, status=200) 
         else:
             return Response({
@@ -158,8 +159,33 @@ def donation_transaction_view(request):
             "data": User_donation_transaction_paginator_page_data.data
         }, status=200)
     except Exception as e:
-        print(e)
         return Response({
             "status": False,
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def donation_receipt_view(request, id): 
+    try:
+
+        User_donation_object = User_donation_model.objects.get(id = id)
+        return Response({
+            "status": True, 
+            "message": "Fetch", 
+            "data": {
+                "donation_username": User_donation_object.user.first_name,
+                "created_at": User_donation_object.created_at, 
+                "updated_at": User_donation_object.updated_at , 
+                "donation_city": User_donation_object.donation.donation_city, 
+                "donation_state": User_donation_object.donation.donation_state, 
+                "organizer_name": User_donation_object.donation.organizer_name, 
+                "certification_number": User_donation_object.certification_number
+            }
+        }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
             "message": "Network request failed"
         }, status=500)

@@ -61,6 +61,7 @@ class Donation(models.Model):
     transaction_status = models.CharField(max_length = 100, null = True)
     is_name_visible = models.BooleanField(default = True)
     payment = models.ForeignKey(WebhookEventTrigger, on_delete = models.CASCADE, related_name="user_donation_payment", null = True)
+    certification_number = models.CharField(max_length = 100, null = True)
     created_at = models.DateTimeField(auto_now_add = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, null = True)
 
