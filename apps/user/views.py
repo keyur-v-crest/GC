@@ -775,3 +775,59 @@ def user_accountstatus_view(request):
             "status": False, 
             "message": "Network request failed"
         }, status=500)
+
+@api_view(["GET"])
+def user_check_view(request):
+    try:
+
+        if serializer.UserCheckSerializer(data = request.data).is_valid():
+            User_check = User_details.objects.filter(mobile = request.data['mobile_number'], is_admin = False).count()
+
+            if User_check > 0:
+                return Response({
+                    "status": True, 
+                    "messsage": "Have user"
+                }, status=200)
+            else:
+                return Response({
+                    "status": False, 
+                    "message": "Not found user with this mobile number"
+                }, status=400)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to update password"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["POST"])
+def user_forgetpassword_view(request):
+    try:
+        if serializer.UserForgetPasswordUpdateSerializer(data = request.data).is_valid():
+            
+            hash_password = make_password(request.data['password'])
+            
+            User_details.objects.filter(
+                mobile = request.data['number']
+            ).update(
+                password = hash_password
+            )
+
+            return Response({
+                "status": True, 
+                "message": "Update"
+            }, status=200)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to update password"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)

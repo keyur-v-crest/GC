@@ -47,4 +47,8 @@ urlpatterns = [
 
     # Account status 
     path("accountStatus", views.user_accountstatus_view), 
+
+    # Forgetpassword related route
+    path("check", views.user_check_view), 
+    path("updatepassword", views.user_forgetpassword_view)
 ]

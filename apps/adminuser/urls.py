@@ -54,5 +54,8 @@ urlpatterns = [
     # Profession related CRUD
     path("professional", views.professional_list_view, name="professional_list"), 
     path("professional/delete/<int:id>", views.professional_delete_view, name="professional_delete"), 
-    path("professional/<int:id>", views.professional_details_view, name="professional_details")
+    path("professional/<int:id>", views.professional_details_view, name="professional_details"), 
+
+    # Forget passworf related crud 
+    path("forgetPasswordcheck", views.user_check_view)
 ]

@@ -1159,3 +1159,24 @@ def professional_details_view(request, id):
             "message": "Network request failed"
         }, status=500)
         
+@api_view(["GET"])
+def user_check_view(request):
+    try:
+
+        User_check = User_details.objects.filter(mobile = request.data['mobile_number'], is_admin = True).count()
+
+        if User_check > 0:
+            return Response({
+                "status": True, 
+                "messsage": "Have user"
+            }, status=200)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Not found user with this mobile number"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)

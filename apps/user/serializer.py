@@ -100,3 +100,10 @@ class BannerListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BannerImage
         fields = ["id", "image", "title", "subtitle"]
+
+class UserCheckSerializer(serializers.Serializer):
+    mobile_number = serializers.CharField(required = True)
+
+class UserForgetPasswordUpdateSerializer(serializers.Serializer):
+    number = serializers.CharField(required =  True) 
+    password = serializers.CharField(required = True)

@@ -31,3 +31,10 @@ def HelperGeneratePassword():
     alphabet = string.ascii_letters + string.digits
     random_string = ''.join(secrets.choice(alphabet) for i in range(10))
     return random_string
+
+
+def send_message_to_number(number):
+    try:
+        return True
+    except Exception as e:
+        return False
