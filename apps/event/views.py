@@ -286,7 +286,6 @@ def event_history_view(request):
 @permission_classes([CheckUserAuthentication])
 def event_recentgallery_view(request):
     try:
-
         today_date = datetime.today() 
         seven_days_from_now = datetime.now().date() + timedelta(days=7)
 
