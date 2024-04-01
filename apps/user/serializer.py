@@ -24,11 +24,10 @@ class SerializersCreateUserStep3(serializers.Serializer):
     email = serializers.CharField(required = True)
     mobile_number = serializers.CharField(required = True) 
     profession = serializers.CharField(required = True)
-    description = serializers.CharField(required = True) 
     address = serializers.CharField(required = True) 
 
 class SerializersCreateUserStep4(serializers.Serializer): 
-    profile_image = serializers.CharField(required = True)
+    profile_image = serializers.CharField(required = True, allow_null = True)
 
 
 class SerializerUserLogin(serializers.Serializer):
@@ -38,7 +37,7 @@ class SerializerUserLogin(serializers.Serializer):
 class SerializerFetchFamilyMemberInfo(serializers.ModelSerializer): 
     class Meta:
         model = Details
-        fields = ['id', 'email', 'first_name']
+        fields = ['id', 'email', 'first_name', "mobile", "profile_image"]
 
 class AcheivementCreateSerializer(serializers.Serializer):
     name = serializers.ListField(required = True)
@@ -81,15 +80,15 @@ class AchieverListSerializer(serializers.ModelSerializer):
             return {}
 
 class ProfileUpdateSerializer(serializers.Serializer):
-    user_image = serializers.CharField(required = True)
+    user_image = serializers.CharField(required = True, allow_null = True)
     username = serializers.CharField(required= True)
     dob = serializers.CharField(required = True)
     email = serializers.CharField(required = True)
     gender = serializers.CharField(required = True)
     address = serializers.CharField(required = True)
     profession = serializers.CharField(required = True)
-    linkdin = serializers.CharField(required = True, allow_null = True)
-    upwork = serializers.CharField(required = True, allow_null = True)
+    linkdin = serializers.CharField(required = True, allow_null = True, allow_blank = True)
+    upwork = serializers.CharField(required = True, allow_null = True, allow_blank = True)
     background_image = serializers.CharField(required = True, allow_null = True)
     achivements = serializers.ListField(required = True)
 

@@ -13,6 +13,8 @@ from apps.user.helpers import HelperCreateFamilyId, CheckUserAuthentication,  He
 from rest_framework_simplejwt.authentication import JWTAuthentication 
 import re
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import random
+
 
 @api_view(["POST"])
 def RouteUserSignStep1(request): 
@@ -26,34 +28,34 @@ def RouteUserSignStep1(request):
                 
                 User_object = User_details.objects.get(email = request.data['email'])  
                 
-                if not User_object.step2: 
+                if not User_object.mobile_verified: 
                     return Response({
                         'status': False, 
                         'message': "Step2 not complete"
                     }, status = 400)
 
-                if not User_object.step3: 
+                if not User_object.email_verified: 
                     return Response({
                         'status': False, 
                         'message': "Step3 not complete"
                     }, status=400)
                 
-                if not User_object.step4:
+                if not User_object.step2:
                     return Response({
                         'status': False, 
                         'message': "Step4 not complete"
                     }, status=400)
                 
-                if not User_object.email_verified: 
+                if not User_object.step3: 
                     return Response({
                         'status': False, 
-                        'message': "Email not verified"
+                        'message': "Step5 not complete"
                     }, status=400)
                 
-                if not User_object.mobile_verified: 
+                if not User_object.step4: 
                     return Response({
                         'status': False, 
-                        'message': "Mobile number not verified"
+                        'message': "Step4 not complete"
                     }, status=400)
                 
                 return Response({
@@ -97,7 +99,110 @@ def RouteUserSignStep1(request):
             'status': False, 
             'message': "Network request failed"
         }, status=500)
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_mobileverificationcode_send_route(request):
+    try:
+        
+        four_digit_number = random.randint(1000, 9999)
+        User_details.objects.filter(id = request.user.id).update(
+            mobile_otp = four_digit_number
+        )
+
+        return Response({
+            "status": True, 
+            "message": "Send"
+        }, status=200)
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500) 
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_mobileverify_view(request):
+    try:
+
+        user_otp = request.data['otp']
+
+        User_database_otp = User_details.objects.filter(id = request.user.id).values("mobile_otp").first()
+        User_database_otp = User_database_otp['mobile_otp']
+
+        if User_database_otp == user_otp: 
+            User_details.objects.filter(id = request.user.id).update(
+                mobile_verified = True
+            )
+            return Response({
+                "status": True, 
+                "message": "Verify"
+            }, status=200)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Invalid OTP"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500) 
     
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_emailverificationcode_send_route(request):
+    try:
+        
+        four_digit_number = random.randint(1000, 9999)
+        User_details.objects.filter(id = request.user.id).update(
+            email_otp = four_digit_number
+        )
+
+        return Response({
+            "status": True, 
+            "message": "Send"
+        }, status=200)
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500) 
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_emailverify_view(request):
+    try:
+
+        user_otp = request.data['otp']
+
+        User_database_otp = User_details.objects.filter(id = request.user.id).values("email_otp").first()
+        User_database_otp = User_database_otp['email_otp']
+
+        if User_database_otp == user_otp: 
+            User_details.objects.filter(id = request.user.id).update(
+                email_verified = True
+            )
+            return Response({
+                "status": True, 
+                "message": "Verify"
+            }, status=200)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Invalid OTP"
+            }, status=400)
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500) 
+
+
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
@@ -126,7 +231,7 @@ def RouteUserSignupStep2(request):
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def RouteUserSignupStep3(request): 
+def user_familymember_add_view(request): 
     try:
 
         if SerializersCreateUserStep3(data = request.data).is_valid():
@@ -151,7 +256,6 @@ def RouteUserSignupStep3(request):
                     email = request.data['email'], 
                     mobile = request.data['mobile_number'], 
                     profession = request.data['profession'], 
-                    profession_description = request.data['description'], 
                     address = request.data['address'], 
                     relation = request.data['relation'], 
                     username = str(uuid.uuid4()), 
@@ -178,11 +282,32 @@ def RouteUserSignupStep3(request):
             'status': False, 
             "message": "Network request failed"
         }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_step3complete_view(request):
+    try:
+
+        User_details.objects.filter(id = request.user.id).update(
+            step3 = True
+        )
+
+        return Response({
+            "status": True,
+            "message": "Complete"
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            "message": "Network request failed"
+        }, status=500)
+
 
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def RotueUserSignupStep4(request): 
+def user_profileimage_view(request): 
     try:
 
         if SerializersCreateUserStep4(data = request.data).is_valid():
@@ -317,6 +442,56 @@ def RouteFetchFamilyMembers(request):
             'status': False, 
             'message': "Network request failed"
         }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def particular_member_view(request, id): 
+    try:
+        # Fetch all family member information based on family id 
+        Member_information = User_details.objects.get(id = id)
+        return Response({
+            'status': True, 
+            'message':  'Fetch', 
+            "data": {
+                "first_name": Member_information.first_name, 
+                "last_name": Member_information.last_name, 
+                "relation": Member_information.relation,
+                "profession": Member_information.profession, 
+                "description": Member_information.profession_description
+            }
+        }, status=200)
+    except Exception as e: 
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def particular_member_update_view(request,id):
+    try:
+
+        Member_information = User_details.objects.get(id = id)
+        Member_information.first_name = request.data['first_name']
+        Member_information.last_name = request.data['last_name']
+        Member_information.relation = request.data['relation']
+        Member_information.profession = request.data['profession']
+        Member_information.profession_description = request.data['description']
+        Member_information.save()
+
+        return Response({
+            "status": True, 
+            "message": "Update"
+        }, status=200) 
+    except Exception as e:
+        return Response({
+            'status': False, 
+            'message': "Network request failed"
+        }, status=500)
+
+
     
 @api_view(["POST"])
 @authentication_classes([JWTAuthentication])
@@ -456,7 +631,7 @@ def achivement_details_view(request, id):
 @api_view(["GET"])
 @authentication_classes([JWTAuthentication])
 @permission_classes([CheckUserAuthentication])
-def user_profiiledetails_view(request):
+def user_profiledetails_view(request):
     try:
 
         # Reterive user achivement 
@@ -475,7 +650,9 @@ def user_profiiledetails_view(request):
                 "linkdin": request.user.linkdin, 
                 "upwork": request.user.upwork, 
                 "background_image": request.user.background_image, 
-                "achivements": User_achivements
+                "achivements": User_achivements, 
+                "number": request.user.mobile, 
+                "profession_description": request.user.profession_description
             }
         })
     except Exception as e:
@@ -501,7 +678,7 @@ def user_profile_update_view(request):
                 User_object.first_name = request.data['username']
                 User_object.dob = request.data['dob']
                 User_object.email = request.data['email']
-                User_object.gender = request.data['gender']
+                # User_object.gender = request.data['gender']
                 User_object.address = request.data['address']
                 User_object.profession = request.data['profession']
                 User_object.linkdin = request.data['linkdin']
@@ -575,6 +752,23 @@ def user_banner_image(request):
             "status": 200 ,
             "message": "Fetch", 
             "data": Banner_images_data.data
+        }, status=200)
+    except Exception as e:
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["GET"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def user_accountstatus_view(request):
+    try:
+        User_account_status = User_details.objects.filter(id = request.user.id).values("account_status").first()
+        return Response({
+            "status": True,
+            "message": "Fetch", 
+            "data": User_account_status
         }, status=200)
     except Exception as e:
         return Response({
