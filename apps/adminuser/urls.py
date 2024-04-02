@@ -34,6 +34,7 @@ urlpatterns = [
 
     path("event/qrscan", views.event_qrscan_view, name="event_qr_scan"), 
     path("event/ticket/<int:id>", views.event_ticketdetails_view, name="event_ticketdetails_view"), 
+    path("event/ticket/complete", views.event_ticketcomplete_view, name="event_ticketdetails_view"), 
     path("event/transaction/<int:id>", views.event_transaction_view, name="event_transaction_view"), 
     path("event/selection", views.event_selection_view, name = "event_selection"), 
 
