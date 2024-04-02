@@ -571,11 +571,18 @@ def event_qrscan_view(request):
     try:
 
         if serializer.EventQrScanSerializer(data = request.data).is_valid():
-            ticket_information = User_event_model.objects.filter(ticket_number = request.data['ticket_number']).values("event__event_name", "event__event_image", "event__category__category_name", "id").first()
+            ticket_information = User_event_model.objects.filter(ticket_number = request.data['ticket_number']).values("event__event_name", "event__event_image", "event__category__category_name", "id", "status", "family_id", "event_id", "book_by_id").first()
+            event_id = ticket_information['event_id']
+            book_by_id = ticket_information['book_by_id']
+            family_id = ticket_information['family_id']
+
+            ticket_member_information = User_event_model.objects.filter(family_id = family_id, event_id = event_id, book_by_id = book_by_id, transaction_status = "Complete").values("user__first_name", "status", "id")
+
             return Response({
                 "status": True,
                 "message": "Fetch", 
-                "data": ticket_information
+                "data": ticket_information, 
+                "member": ticket_member_information
             }, status=200)
         else:
             return Response({
@@ -602,6 +609,29 @@ def event_ticketdetails_view(request, id):
             "data": Particular_ticket_details.data[0]
         }, status=200)
     except Exception as e: 
+        return Response({
+            "status": False, 
+            "message": "Network request failed"
+        }, status=500)
+    
+@api_view(["POST"])
+@authentication_classes([JWTAuthentication])
+@permission_classes([CheckUserAuthentication])
+def event_ticketcomplete_view(request): 
+    try:
+        
+        if serializer.TicketCompleteSerializer(data = request.data).is_valid():
+            User_event_model.objects.filter(user_id__in = request.data['ids']).update(status = "Complete")
+            return Response({
+                "status": True, 
+                "message": "Complete"
+            }, status=200)
+        else:
+            return Response({
+                "status": False, 
+                "message": "Failed to complete ticket"
+            }, status=400)
+    except Exception as e:
         return Response({
             "status": False, 
             "message": "Network request failed"
@@ -1032,8 +1062,22 @@ def news_delete_view(request, id):
 def donation_transaction_view(request, id):
     try:
 
+        page_number = int(request.query_params.get("page_number"))
+        page_size = int(request.query_params.get("page_size"))
+        
         Donation_object = Donation_model.objects.get(id = id)
         Donation_total_earning = Session.objects.filter(metadata__contains={"donation_id": str(id)}, payment_status= "paid").aggregate(Total_sum=Sum("amount_total"))
+
+        Donation_transaction = Session.objects.filter(metadata__contains = {"donation_id": str(id)}, payment_status = "paid")
+        Donation_transaction_paginator = Paginator(Donation_transaction, page_size)
+
+        try:
+            Donation_transaction_paginator_page = Donation_transaction_paginator.page(page_number)
+        except EmptyPage:
+            Donation_transaction_paginator_page = []
+
+        Donation_transaction_paginator_data = serializer.EventTransactionDetailsData(Donation_transaction_paginator_page, many = True)
+
         return Response({
             "status": True, 
             "message": "Fetch", 
@@ -1045,10 +1089,12 @@ def donation_transaction_view(request, id):
                         "donation_address": Donation_object.donation_address, 
                         "organizer_image": Donation_object.organizer_image
                     }, 
-                "total_amount": Donation_total_earning
+                "total_amount": Donation_total_earning, 
+                "transaction": Donation_transaction_paginator_data.data
             }
         }, status = 200)
     except Exception as e:
+        print(e)
         return Response({
             "status": False, 
             "message": "Network request failed"

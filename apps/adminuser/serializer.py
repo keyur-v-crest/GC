@@ -127,7 +127,7 @@ class ParticularEventDetailsFetch(serializers.ModelSerializer):
 
     class Meta:
         model = User_event 
-        fields = ["id", "ticket_number", "event", "book_by_username", "payment", "number_of_seat"]
+        fields = ["id", "ticket_number", "event", "book_by_username", "payment", "number_of_seat", "created_at", "updated_at"]
     
     def get_book_by_username(self, object): 
         return {
@@ -274,3 +274,6 @@ class AchieverListSerializer(serializers.ModelSerializer):
             }
         except Exception as e:
             return {}
+        
+class TicketCompleteSerializer(serializers.Serializer): 
+    ids = serializers.ListField(required = True)
